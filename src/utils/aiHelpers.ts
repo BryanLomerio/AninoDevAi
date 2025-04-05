@@ -21,7 +21,7 @@ export const speakWithBrowserTTS = (text: string) => {
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
       window.speechSynthesis.onvoiceschanged = loadVoices;
     }
-
+    // if voices already loaded
     if (window.speechSynthesis.getVoices().length > 0) {
       loadVoices();
     }

@@ -141,7 +141,7 @@ const Index = () => {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gray-50 p-4 flex flex-col items-center">
+    <div className="min-h-screen bg-[#1e1e1e] p-4 flex flex-col items-center">
       <div className="w-full max-w-4xl">
         <Card className="w-full">
           <CardHeader>

@@ -32,16 +32,16 @@ const MessageInput: React.FC<MessageInputProps> = ({
         {isListening ? <MicOff className="h-4 w-4 mr-2" /> : <Mic className="h-4 w-4 mr-2" />}
         {isListening ? "Stop" : "Record"}
       </Button>
-      
+
       <Input
         value={transcript}
         onChange={(e) => onTranscriptChange(e.target.value)}
         placeholder="Type or speak your message..."
         className="flex-1"
       />
-      
-      <Button 
-        onClick={onSendMessage} 
+
+      <Button
+        onClick={onSendMessage}
         disabled={!transcript.trim() || loading}
         className="flex-shrink-0"
       >
