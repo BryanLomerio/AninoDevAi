@@ -23,4 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
+# Ignore API Keys configuration
 src/config/apiKeys.ts
+
+# Ignore environment files
+.env.local
