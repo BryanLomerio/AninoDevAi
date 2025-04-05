@@ -7,12 +7,15 @@ import MessageInput from "@/components/MessageInput"
 import { initSpeechRecognition } from "@/utils/speechRecognition"
 import { loadVapiSDK, createVapiCall } from "@/utils/vapiHelper"
 import { sendMessageToGemini, type Message } from "@/utils/aiHelpers"
+import { stripMarkdown } from "@/utils/textProcessing"
 import { Headphones, Mic } from "lucide-react"
 
-// Speak function with TTS
+
 const speakWithBrowserTTS = (text: string, voice?: SpeechSynthesisVoice) => {
   if ("speechSynthesis" in window) {
-    const utterance = new SpeechSynthesisUtterance(text)
+
+    const cleanText = stripMarkdown(text)
+    const utterance = new SpeechSynthesisUtterance(cleanText)
 
     utterance.onerror = (event) => {
       console.error("Speech synthesis error:", event)
@@ -201,7 +204,9 @@ const Index = () => {
 
       if (shouldSpeak) {
         if (vapiInstance.current && vapiApiKey) {
-          const success = await createVapiCall(vapiInstance.current, responseText)
+          // Vapi
+          const cleanText = stripMarkdown(responseText)
+          const success = await createVapiCall(vapiInstance.current, cleanText)
           if (!success) {
             speakWithBrowserTTS(responseText, selectedVoice || undefined)
           }
@@ -235,12 +240,13 @@ const Index = () => {
             </div>
           </div>
           <div className="p-5 space-y-5">
-            <div className="bg-slate-800 rounded-md p-2 border border-slate-700">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <ApiKeyInputs vapiApiKey={vapiApiKey} onVapiKeyChange={setVapiApiKey} />
-                <VoiceSelector onVoiceSelect={handleVoiceSelect} />
-              </div>
-            </div>
+          <div className="bg-slate-800 rounded-md p-2 border border-slate-700  overflow-hidden w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <ApiKeyInputs vapiApiKey={vapiApiKey} onVapiKeyChange={setVapiApiKey} />
+          <VoiceSelector onVoiceSelect={handleVoiceSelect} />
+        </div>
+      </div>
+
 
             <div>
               <ChatDisplay messages={messages} loading={loading} />
@@ -255,8 +261,8 @@ const Index = () => {
               onSendMessage={handleSendMessage}
             />
 
-            {/* nable/disable voice output */}
-            <div className="flex items-center gap-2">
+            {/* Enable/disable voice output */}
+            <div className="flex items-center gap-2 ">
               <label className="text-white text-sm" htmlFor="toggle-voice">
                 Voice Answer:
               </label>
@@ -265,6 +271,7 @@ const Index = () => {
                 id="toggle-voice"
                 checked={shouldSpeak}
                 onChange={(e) => setShouldSpeak(e.target.checked)}
+                className="h-4 w-4 rounded border-slate-700 bg-slate-800"
               />
               {/* Stop Voice Button */}
               <button
@@ -297,3 +304,4 @@ const Index = () => {
 }
 
 export default Index
+
