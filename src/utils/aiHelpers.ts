@@ -1,37 +1,29 @@
-export const speakWithBrowserTTS = (text: string) => {
-  if ('speechSynthesis' in window) {
+export const speakWithBrowserTTS = (text: string, voice?: SpeechSynthesisVoice) => {
+  if ("speechSynthesis" in window) {
     const utterance = new SpeechSynthesisUtterance(text);
 
     utterance.onerror = (event) => {
-      console.error('Speech synthesis error:', event);
+      console.error("Speech synthesis error:", event);
     };
 
-    const loadVoices = () => {
+
+    if (voice) {
+      utterance.voice = voice;
+    } else {
       const voices = window.speechSynthesis.getVoices();
-      if (voices.length > 0) {
-     
-        const maleVoice = voices.find(v =>
-          v.name.toLowerCase().includes('male') ||
+      const defaultVoice =
+        voices.find((v) =>
+          v.name.toLowerCase().includes("male") ||
           /david|mark|fred|alex|paul|zarvox|bruce/.test(v.name.toLowerCase())
-        );
-
-        utterance.voice = maleVoice || voices[0];
-
-        utterance.rate = 1.2;
-        utterance.pitch = 1;
-        utterance.volume = 3;
-
-        window.speechSynthesis.speak(utterance);
-      }
-    };
-
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = loadVoices;
+        ) || voices[0];
+      utterance.voice = defaultVoice;
     }
 
-    if (window.speechSynthesis.getVoices().length > 0) {
-      loadVoices();
-    }
+    utterance.rate = 1.2;
+    utterance.pitch = 1;
+    utterance.volume = 3;
+
+    window.speechSynthesis.speak(utterance);
   }
 };
 

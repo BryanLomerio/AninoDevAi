@@ -12,11 +12,88 @@ import ChatDisplay from "@/components/ChatDisplay";
 import MessageInput from "@/components/MessageInput";
 import { initSpeechRecognition } from "@/utils/speechRecognition";
 import { loadVapiSDK, createVapiCall } from "@/utils/vapiHelper";
-import {
-  speakWithBrowserTTS,
-  sendMessageToGemini,
-  type Message,
-} from "@/utils/aiHelpers";
+import { sendMessageToGemini, type Message } from "@/utils/aiHelpers";
+
+const speakWithBrowserTTS = (text: string, voice?: SpeechSynthesisVoice) => {
+  if ("speechSynthesis" in window) {
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    utterance.onerror = (event) => {
+      console.error("Speech synthesis error:", event);
+    };
+
+    if (voice) {
+      utterance.voice = voice;
+    } else {
+      const voices = window.speechSynthesis.getVoices();
+      const defaultVoice =
+        voices.find((v) =>
+          v.name.toLowerCase().includes("male") ||
+          /david|mark|fred|alex|paul|zarvox|bruce/.test(v.name.toLowerCase())
+        ) || voices[0];
+      utterance.voice = defaultVoice;
+    }
+
+    utterance.rate = 1.2;
+    utterance.pitch = 1;
+    utterance.volume = 3;
+
+    window.speechSynthesis.speak(utterance);
+  }
+};
+
+const VoiceSelector: React.FC<{ onVoiceSelect: (voice: SpeechSynthesisVoice) => void }> = ({ onVoiceSelect }) => {
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoiceName, setSelectedVoiceName] = useState("");
+
+  useEffect(() => {
+    const loadVoices = () => {
+      const availableVoices = window.speechSynthesis.getVoices();
+      setVoices(availableVoices);
+      if (availableVoices.length > 0 && !selectedVoiceName) {
+        setSelectedVoiceName(availableVoices[0].name);
+        onVoiceSelect(availableVoices[0]);
+      }
+    };
+
+    loadVoices();
+
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, [onVoiceSelect, selectedVoiceName]);
+
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const voiceName = event.target.value;
+    setSelectedVoiceName(voiceName);
+    const voice = voices.find((v) => v.name === voiceName);
+    if (voice) {
+      onVoiceSelect(voice);
+    }
+  };
+
+  return (
+    <div className="mb-4">
+      <label htmlFor="voice-select" className="text-white mr-2">
+        Choose Voice:
+      </label>
+      <select
+        id="voice-select"
+        value={selectedVoiceName}
+        onChange={handleChange}
+        className="p-1 rounded"
+      >
+        {voices.map((voice) => (
+          <option key={voice.name} value={voice.name}>
+            {voice.name} ({voice.lang})
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+};
+
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 const Index = () => {
   const [isListening, setIsListening] = useState(false);
@@ -24,15 +101,14 @@ const Index = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [vapiApiKey, setVapiApiKey] = useState("");
   const [loading, setLoading] = useState(false);
-  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+  const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
 
   const vapiInstance = useRef<any>(null);
   const recognitionRef = useRef<any>(null);
 
-  // ── Speech recognition setup ────────────────────────────────────────────────
+  // ── Speech recognition setup ─────────────────────────────────────────────
   useEffect(() => {
     recognitionRef.current = initSpeechRecognition(
-      // only update when there's non-empty text
       (newText) => {
         const t = newText.trim();
         if (t) setTranscript(t);
@@ -99,6 +175,11 @@ const Index = () => {
     }
   };
 
+
+  const handleVoiceSelect = (voice: SpeechSynthesisVoice) => {
+    setSelectedVoice(voice);
+  };
+
   const handleSendMessage = async () => {
     if (!transcript.trim()) return;
 
@@ -119,13 +200,12 @@ const Index = () => {
       setMessages((prev) => [...prev, assistantMessage]);
 
       if (vapiInstance.current && vapiApiKey) {
-        const success = await createVapiCall(
-          vapiInstance.current,
-          responseText
-        );
-        if (!success) speakWithBrowserTTS(responseText);
+        const success = await createVapiCall(vapiInstance.current, responseText);
+        if (!success) {
+          speakWithBrowserTTS(responseText, selectedVoice || undefined);
+        }
       } else {
-        speakWithBrowserTTS(responseText);
+        speakWithBrowserTTS(responseText, selectedVoice || undefined);
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -145,17 +225,12 @@ const Index = () => {
       <div className="w-full max-w-4xl">
         <Card className="w-full">
           <CardHeader>
-            <CardTitle>AninoDev</CardTitle>
+            <CardTitle className="text-white">AninoDev</CardTitle>
           </CardHeader>
-
           <CardContent>
-            <ApiKeyInputs
-              vapiApiKey={vapiApiKey}
-              onVapiKeyChange={setVapiApiKey}
-            />
-
+            <ApiKeyInputs vapiApiKey={vapiApiKey} onVapiKeyChange={setVapiApiKey} />
+            <VoiceSelector onVoiceSelect={handleVoiceSelect} />
             <ChatDisplay messages={messages} loading={loading} />
-
             <MessageInput
               transcript={transcript}
               isListening={isListening}
@@ -165,7 +240,6 @@ const Index = () => {
               onSendMessage={handleSendMessage}
             />
           </CardContent>
-
           <CardFooter className="flex justify-between border-t pt-4">
             <p className="text-xs text-gray-500">
               {isListening ? "Listening..." : "Microphone off"}
