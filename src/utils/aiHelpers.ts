@@ -9,11 +9,18 @@ export const speakWithBrowserTTS = (text: string) => {
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
       if (voices.length > 0) {
-
-        const femaleVoice = voices.find(v =>
-          v.name.toLowerCase().includes('female')
+     
+        const maleVoice = voices.find(v =>
+          v.name.toLowerCase().includes('male') ||
+          /david|mark|fred|alex|paul|zarvox|bruce/.test(v.name.toLowerCase())
         );
-        utterance.voice = femaleVoice || voices[0];
+
+        utterance.voice = maleVoice || voices[0];
+
+        utterance.rate = 1.2;
+        utterance.pitch = 1;
+        utterance.volume = 3;
+
         window.speechSynthesis.speak(utterance);
       }
     };
@@ -21,7 +28,7 @@ export const speakWithBrowserTTS = (text: string) => {
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
       window.speechSynthesis.onvoiceschanged = loadVoices;
     }
-    // if voices already loaded
+
     if (window.speechSynthesis.getVoices().length > 0) {
       loadVoices();
     }
