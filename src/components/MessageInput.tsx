@@ -43,7 +43,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
       <Button
         onClick={onSendMessage}
         disabled={!transcript.trim() || loading}
-        className="flex-shrink-0"
+        className="flex-shrink-0 bg-green-800 hover:bg-green-600"
       >
         <Send className="h-4 w-4 mr-2" />
         Send
