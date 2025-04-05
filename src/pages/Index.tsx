@@ -7,8 +7,9 @@ import MessageInput from "@/components/MessageInput"
 import { initSpeechRecognition } from "@/utils/speechRecognition"
 import { loadVapiSDK, createVapiCall } from "@/utils/vapiHelper"
 import { sendMessageToGemini, type Message } from "@/utils/aiHelpers"
-import { Headphones, Mic, Settings } from "lucide-react"
+import { Headphones, Mic } from "lucide-react"
 
+// Speak function with TTS
 const speakWithBrowserTTS = (text: string, voice?: SpeechSynthesisVoice) => {
   if ("speechSynthesis" in window) {
     const utterance = new SpeechSynthesisUtterance(text)
@@ -35,6 +36,12 @@ const speakWithBrowserTTS = (text: string, voice?: SpeechSynthesisVoice) => {
     utterance.volume = 3
 
     window.speechSynthesis.speak(utterance)
+  }
+}
+
+const stopSpeech = () => {
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel()
   }
 }
 
@@ -99,6 +106,7 @@ const Index = () => {
   const [vapiApiKey, setVapiApiKey] = useState("")
   const [loading, setLoading] = useState(false)
   const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null)
+  const [shouldSpeak, setShouldSpeak] = useState(true)
 
   const vapiInstance = useRef<any>(null)
   const recognitionRef = useRef<any>(null)
@@ -191,13 +199,15 @@ const Index = () => {
       const { assistantMessage, responseText } = await sendMessageToGemini(GEMINI_API_KEY, messages, userMessage)
       setMessages((prev) => [...prev, assistantMessage])
 
-      if (vapiInstance.current && vapiApiKey) {
-        const success = await createVapiCall(vapiInstance.current, responseText)
-        if (!success) {
+      if (shouldSpeak) {
+        if (vapiInstance.current && vapiApiKey) {
+          const success = await createVapiCall(vapiInstance.current, responseText)
+          if (!success) {
+            speakWithBrowserTTS(responseText, selectedVoice || undefined)
+          }
+        } else {
           speakWithBrowserTTS(responseText, selectedVoice || undefined)
         }
-      } else {
-        speakWithBrowserTTS(responseText, selectedVoice || undefined)
       }
     } catch (error) {
       console.error("Error sending message:", error)
@@ -244,6 +254,26 @@ const Index = () => {
               onToggleListening={toggleListening}
               onSendMessage={handleSendMessage}
             />
+
+            {/* nable/disable voice output */}
+            <div className="flex items-center gap-2">
+              <label className="text-white text-sm" htmlFor="toggle-voice">
+                Voice Answer:
+              </label>
+              <input
+                type="checkbox"
+                id="toggle-voice"
+                checked={shouldSpeak}
+                onChange={(e) => setShouldSpeak(e.target.checked)}
+              />
+              {/* Stop Voice Button */}
+              <button
+                className="ml-4 bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-sm"
+                onClick={stopSpeech}
+              >
+                Stop Voice
+              </button>
+            </div>
           </div>
           <div className="flex justify-between border-t border-slate-800 p-4 bg-slate-900">
             <p className="text-sm text-slate-400 flex items-center gap-2">
@@ -267,4 +297,3 @@ const Index = () => {
 }
 
 export default Index
-
