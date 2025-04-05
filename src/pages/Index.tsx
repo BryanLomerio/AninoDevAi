@@ -1,35 +1,43 @@
-
 import React, { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import ApiKeyInputs from "@/components/ApiKeyInputs";
 import ChatDisplay from "@/components/ChatDisplay";
 import MessageInput from "@/components/MessageInput";
 import { initSpeechRecognition } from "@/utils/speechRecognition";
 import { loadVapiSDK, createVapiCall } from "@/utils/vapiHelper";
-import { speakWithBrowserTTS, sendMessageToGemini, type Message } from "@/utils/aiHelpers";
+import {
+  speakWithBrowserTTS,
+  sendMessageToGemini,
+  type Message,
+} from "@/utils/aiHelpers";
+import { GEMINI_API_KEY } from "@/config/apiKeys";
 
 const Index = () => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
-  const [geminiApiKey, setGeminiApiKey] = useState("");
   const [vapiApiKey, setVapiApiKey] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   const vapiInstance = useRef<any>(null);
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     recognitionRef.current = initSpeechRecognition(
-      (newText) => {
-        setTranscript(prev => {
-          const finalText = prev + ' ' + newText;
-          return finalText.trim();
-        });
-      },
+      (newText) =>
+        setTranscript((prev) =>
+          [prev, newText].filter(Boolean).join(" ").trim()
+        ),
       (error) => {
-        console.error('Speech recognition error', error);
+        console.error("Speech recognition error", error);
         setIsListening(false);
         toast({
           title: "Error",
@@ -38,7 +46,7 @@ const Index = () => {
         });
       }
     );
-    
+
     if (!recognitionRef.current) {
       toast({
         title: "Browser not supported",
@@ -48,29 +56,25 @@ const Index = () => {
     }
 
     return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
+      recognitionRef.current?.stop();
     };
   }, []);
 
   useEffect(() => {
-    if (vapiApiKey && typeof window !== 'undefined') {
-      const initVapi = async () => {
-        try {
-          vapiInstance.current = await loadVapiSDK(vapiApiKey);
+    if (vapiApiKey && typeof window !== "undefined") {
+      loadVapiSDK(vapiApiKey)
+        .then((sdk) => {
+          vapiInstance.current = sdk;
           console.log("Vapi SDK loaded");
-        } catch (err: any) {
+        })
+        .catch((err: any) => {
           console.error(err);
           toast({
             title: "Error",
             description: err.message,
             variant: "destructive",
           });
-        }
-      };
-      
-      initVapi();
+        });
     }
   }, [vapiApiKey]);
 
@@ -87,7 +91,6 @@ const Index = () => {
         });
         return;
       }
-      
       recognitionRef.current.start();
       setIsListening(true);
       setTranscript("");
@@ -96,35 +99,26 @@ const Index = () => {
 
   const handleSendMessage = async () => {
     if (!transcript.trim()) return;
-    
-    if (!geminiApiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please enter your Gemini API key",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+
     const userMessage = { role: "user", parts: [{ text: transcript }] };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setTranscript("");
     setLoading(true);
-    
+
     try {
       const { assistantMessage, responseText } = await sendMessageToGemini(
-        geminiApiKey,
+        GEMINI_API_KEY,
         messages,
         userMessage
       );
-      
-      setMessages(prev => [...prev, assistantMessage]);
-      
+      setMessages((prev) => [...prev, assistantMessage]);
+
       if (vapiInstance.current && vapiApiKey) {
-        const success = await createVapiCall(vapiInstance.current, responseText);
-        if (!success) {
-          speakWithBrowserTTS(responseText);
-        }
+        const success = await createVapiCall(
+          vapiInstance.current,
+          responseText
+        );
+        if (!success) speakWithBrowserTTS(responseText);
       } else {
         speakWithBrowserTTS(responseText);
       }
@@ -146,24 +140,17 @@ const Index = () => {
         <Card className="w-full">
           <CardHeader>
             <CardTitle>AI Voice Assistant</CardTitle>
-            <CardDescription>
-              Powered by Gemini and Vapi
-            </CardDescription>
+            <CardDescription>Powered by Gemini and Vapi</CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <ApiKeyInputs
-              geminiApiKey={geminiApiKey}
               vapiApiKey={vapiApiKey}
-              onGeminiKeyChange={setGeminiApiKey}
               onVapiKeyChange={setVapiApiKey}
             />
-            
-            <ChatDisplay 
-              messages={messages} 
-              loading={loading} 
-            />
-            
+
+            <ChatDisplay messages={messages} loading={loading} />
+
             <MessageInput
               transcript={transcript}
               isListening={isListening}
@@ -173,7 +160,7 @@ const Index = () => {
               onSendMessage={handleSendMessage}
             />
           </CardContent>
-          
+
           <CardFooter className="flex justify-between border-t pt-4">
             <p className="text-xs text-gray-500">
               {isListening ? "Listening..." : "Microphone off"}

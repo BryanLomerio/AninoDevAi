@@ -11,11 +11,11 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading }) => {
   return (
     <div className="border rounded-md p-4 h-80 overflow-y-auto mb-4 bg-white">
       {messages.map((msg, index) => (
-        <div 
-          key={index} 
+        <div
+          key={index}
           className={`mb-3 p-3 rounded-lg ${
-            msg.role === "user" 
-              ? "bg-blue-100 ml-12" 
+            msg.role === "user"
+              ? "bg-blue-100 ml-12"
               : "bg-gray-100 mr-12"
           }`}
         >
