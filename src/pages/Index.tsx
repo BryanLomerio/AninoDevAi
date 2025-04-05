@@ -18,7 +18,7 @@ import {
   sendMessageToGemini,
   type Message,
 } from "@/utils/aiHelpers";
-import { GEMINI_API_KEY } from "@/config/apiKeys";
+
 
 const Index = () => {
   const [isListening, setIsListening] = useState(false);
@@ -26,6 +26,7 @@ const Index = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [vapiApiKey, setVapiApiKey] = useState("");
   const [loading, setLoading] = useState(false);
+  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
   const vapiInstance = useRef<any>(null);
   const recognitionRef = useRef<any>(null);
