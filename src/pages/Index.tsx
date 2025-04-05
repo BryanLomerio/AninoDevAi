@@ -140,8 +140,7 @@ const Index = () => {
       <div className="w-full max-w-4xl">
         <Card className="w-full">
           <CardHeader>
-            <CardTitle>AI Voice Assistant</CardTitle>
-            <CardDescription>Powered by Gemini and Vapi</CardDescription>
+            <CardTitle>AninoDev</CardTitle>
           </CardHeader>
 
           <CardContent>
