@@ -33,10 +33,9 @@ const Index = () => {
 
   useEffect(() => {
     recognitionRef.current = initSpeechRecognition(
-      (newText) =>
-        setTranscript((prev) =>
-          [prev, newText].filter(Boolean).join(" ").trim()
-        ),
+      (newText) => {
+        setTranscript(newText.trim());
+      },
       (error) => {
         console.error("Speech recognition error", error);
         setIsListening(false);
