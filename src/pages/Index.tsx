@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -19,7 +18,6 @@ import {
   type Message,
 } from "@/utils/aiHelpers";
 
-
 const Index = () => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -31,10 +29,13 @@ const Index = () => {
   const vapiInstance = useRef<any>(null);
   const recognitionRef = useRef<any>(null);
 
+  // ── Speech recognition setup ────────────────────────────────────────────────
   useEffect(() => {
     recognitionRef.current = initSpeechRecognition(
+      // only update when there's non-empty text
       (newText) => {
-        setTranscript(newText.trim());
+        const t = newText.trim();
+        if (t) setTranscript(t);
       },
       (error) => {
         console.error("Speech recognition error", error);
@@ -60,12 +61,12 @@ const Index = () => {
     };
   }, []);
 
+  // ── Vapi SDK loader ────────────────────────────────────────────────────────
   useEffect(() => {
     if (vapiApiKey && typeof window !== "undefined") {
       loadVapiSDK(vapiApiKey)
         .then((sdk) => {
           vapiInstance.current = sdk;
-          console.log("Vapi SDK loaded");
         })
         .catch((err: any) => {
           console.error(err);
@@ -78,6 +79,7 @@ const Index = () => {
     }
   }, [vapiApiKey]);
 
+  // ── Controls ───────────────────────────────────────────────────────────────
   const toggleListening = () => {
     if (isListening) {
       recognitionRef.current?.stop();
@@ -100,7 +102,10 @@ const Index = () => {
   const handleSendMessage = async () => {
     if (!transcript.trim()) return;
 
-    const userMessage = { role: "user", parts: [{ text: transcript }] };
+    const userMessage: Message = {
+      role: "user",
+      parts: [{ text: transcript }],
+    };
     setMessages((prev) => [...prev, userMessage]);
     setTranscript("");
     setLoading(true);
@@ -134,6 +139,7 @@ const Index = () => {
     }
   };
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50 p-4 flex flex-col items-center">
       <div className="w-full max-w-4xl">

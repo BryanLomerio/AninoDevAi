@@ -1,5 +1,3 @@
-// src/utils/aiHelpers.ts
-
 export const speakWithBrowserTTS = (text: string) => {
   if ('speechSynthesis' in window) {
     const utterance = new SpeechSynthesisUtterance(text);
@@ -11,7 +9,7 @@ export const speakWithBrowserTTS = (text: string) => {
     const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
       if (voices.length > 0) {
-        // pick a female voice if available
+
         const femaleVoice = voices.find(v =>
           v.name.toLowerCase().includes('female')
         );
@@ -23,7 +21,7 @@ export const speakWithBrowserTTS = (text: string) => {
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
       window.speechSynthesis.onvoiceschanged = loadVoices;
     }
-    // if voices already loaded
+
     if (window.speechSynthesis.getVoices().length > 0) {
       loadVoices();
     }
@@ -43,20 +41,26 @@ export const sendMessageToGemini = async (
   messages: Message[],
   userMessage: Message
 ): Promise<{ assistantMessage: Message; responseText: string }> => {
-  // 1) Inject the AninoDev persona as the very first user message
+
   const personaMessage: Message = {
     role: "user",
     parts: [
       {
-        text: `You are AninoDev, an AI voice assistant. Whenever someone asks your name, reply: "My name is AninoDev."`
+        text: `
+  You are an intelligent and helpful AI assistant named AninoDev.
+
+  Your name is **AninoDev**, and you may refer to yourself that way when it’s natural, such as when introducing yourself or when the user asks "What is your name?" or "Who are you?"
+
+  You don't need to mention your name in every response. Speak like a natural AI assistant.
+
+  Respond helpfully, clearly, and concisely.
+        `.trim()
       }
     ]
   };
 
-  // 2) Build the contents array
   const contents = [personaMessage, ...messages, userMessage];
 
-  // 3) Call the Gemini API
   const response = await fetch(
     `${API_URL}/${MODEL_NAME}:generateContent?key=${apiKey}`,
     {
