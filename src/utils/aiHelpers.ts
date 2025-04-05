@@ -3,21 +3,39 @@ export const speakWithBrowserTTS = (text: string) => {
   if ('speechSynthesis' in window) {
     const utterance = new SpeechSynthesisUtterance(text);
 
-    window.speechSynthesis.onvoiceschanged = () => {
+    utterance.onerror = (event) => {
+      console.error('Speech synthesis error:', event);
+    };
+
+    // Ensure voices are loaded
+    const loadVoices = () => {
       const voices = window.speechSynthesis.getVoices();
 
-      const femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female'));
+      if (voices.length > 0) {
+        const femaleVoice = voices.find(voice => voice.name.toLowerCase().includes('female'));
 
-      if (femaleVoice) {
-        utterance.voice = femaleVoice;
-      } else {
-        utterance.voice = voices[0];
+        if (femaleVoice) {
+          utterance.voice = femaleVoice;
+        } else {
+          utterance.voice = voices[0];
+        }
+
+        // Speak the text
+        window.speechSynthesis.speak(utterance);
       }
-
-      window.speechSynthesis.speak(utterance);
     };
+
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+
+    if (window.speechSynthesis.getVoices().length > 0) {
+      loadVoices();
+    }
   }
 };
+
 
 
 const API_URL = "https://generativelanguage.googleapis.com/v1beta/models";
@@ -33,7 +51,7 @@ export const sendMessageToGemini = async (
   messages: Message[],
   userMessage: Message
 ): Promise<{ assistantMessage: Message; responseText: string }> => {
-
+  // Updated endpoint to use the correct model name
   const response = await fetch(`${API_URL}/${MODEL_NAME}:generateContent?key=${apiKey}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
