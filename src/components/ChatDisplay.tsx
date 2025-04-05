@@ -20,14 +20,14 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading }) => {
           }`}
         >
           <p className="text-sm font-medium mb-1">
-            {msg.role === "user" ? "You" : "Assistant"}
+            {msg.role === "user" ? "You" : "AninoDev"}
           </p>
           <p>{msg.parts[0].text}</p>
         </div>
       ))}
       {loading && (
         <div className="bg-gray-100 p-3 rounded-lg mr-12 mb-3">
-          <p className="text-sm font-medium mb-1">Assistant</p>
+          <p className="text-sm font-medium mb-1">AninoDev</p>
           <p>Thinking...</p>
         </div>
       )}
