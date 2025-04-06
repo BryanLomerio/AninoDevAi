@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+/* import React, { useState, useEffect } from "react";
 
 interface VoiceSelectorProps {
   onVoiceSelect: (voice: SpeechSynthesisVoice) => void;
@@ -47,3 +47,4 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ onVoiceSelect }) => {
 };
 
 export default VoiceSelector;
+ */
