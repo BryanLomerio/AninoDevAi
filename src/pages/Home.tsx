@@ -177,8 +177,8 @@ const Home = () => {
 
   // ── Render
   return (
-    <div className="h-screen bg-[#1e1e1e] flex flex-col items-center font-poppins">
-      <div className="w-full max-w-4xl h-full flex flex-col">
+    <div className="min-h-screen bg-[#1e1e1e] flex justify-center font-poppins">
+      <div className="w-full max-w-4xl flex flex-col">
         <div className="flex-1 flex flex-col overflow-hidden  bg-[#1e1e1e] rounded-lg">
           {/* Header */}
           <div className=" bg-[#1e1e1e] p-3 sm:p-4 flex justify-between items-center">
