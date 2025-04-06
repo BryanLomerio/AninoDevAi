@@ -22,7 +22,7 @@ export const createVapiCall = async (vapi: any, text: string) => {
         },
       },
     });
-    
+
     await call.connect();
     call.send({ text });
     return true;
