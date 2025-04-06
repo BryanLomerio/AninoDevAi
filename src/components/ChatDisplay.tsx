@@ -1,5 +1,5 @@
 import type React from "react"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import type { Message } from "@/utils/aiHelpers"
 import ReactMarkdown from "react-markdown"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
@@ -60,8 +60,15 @@ const CodeBlock: React.FC<{ language: string; value: string }> = ({ language, va
 }
 
 const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading }) => {
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages, loading])
+
   return (
-    <div className="p-4 h-80 overflow-y-auto mb-4 bg-slate-800 text-white">
+    <div className="flex-1 overflow-y-auto p-4 bg-slate-800 text-white">
       {messages.length === 0 && !loading && (
         <div className="h-full flex flex-col items-center justify-center text-slate-400">
           <Bot className="h-12 w-12 mb-3 opacity-50" />
@@ -154,6 +161,8 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading }) => {
           </div>
         </div>
       )}
+
+      <div ref={messagesEndRef} />
     </div>
   )
 }

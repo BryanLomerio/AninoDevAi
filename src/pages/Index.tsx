@@ -8,7 +8,7 @@ import { initSpeechRecognition } from "@/utils/speechRecognition"
 import { loadVapiSDK, createVapiCall } from "@/utils/vapiHelper"
 import { sendMessageToGemini, type Message } from "@/utils/aiHelpers"
 import { stripMarkdown } from "@/utils/textProcessing"
-import { Headphones, Mic } from "lucide-react"
+import { Headphones, Mic, Settings, X } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 
 const speakWithBrowserTTS = (text: string, voice?: SpeechSynthesisVoice) => {
@@ -110,6 +110,7 @@ const Index = () => {
   const [loading, setLoading] = useState(false)
   const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null)
   const [shouldSpeak, setShouldSpeak] = useState(true)
+  const [showSettings, setShowSettings] = useState(false)
   const isMobile = useIsMobile()
 
   const vapiInstance = useRef<any>(null)
@@ -229,29 +230,72 @@ const Index = () => {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-900 p-2 sm:p-4 md:p-8 flex flex-col items-center">
-      <div className="w-full max-w-4xl">
-        <div className="overflow-hidden rounded-lg border border-slate-700 bg-slate-900 shadow-md">
-          <div className="border-b border-slate-800 bg-slate-900 p-3 sm:p-4">
+    <div className="h-screen bg-slate-900 flex flex-col items-center">
+      <div className="w-full max-w-4xl h-full flex flex-col">
+        <div className="flex-1 flex flex-col overflow-hidden border border-slate-700 bg-slate-900 shadow-md rounded-lg">
+          {/* Header */}
+          <div className="border-b border-slate-800 bg-slate-900 p-3 sm:p-4 flex justify-between items-center">
             <div className="text-lg sm:text-xl font-medium text-white flex items-center gap-2">
               <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-slate-800 flex items-center justify-center">
                 <Mic className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
               </div>
               AninoDev Voice Assistant
             </div>
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              className="text-slate-400 hover:text-white transition-colors"
+            >
+              <Settings className="h-5 w-5" />
+            </button>
           </div>
-          <div className="p-3 sm:p-5 space-y-3 sm:space-y-5">
-            <div className="bg-slate-800 rounded-md p-2 border border-slate-700 overflow-hidden w-full">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+
+          {/* Settings Panel */}
+          {showSettings && (
+            <div className="bg-slate-800 p-3 border-b border-slate-700">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-white text-sm font-medium">Settings</h3>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <ApiKeyInputs vapiApiKey={vapiApiKey} onVapiKeyChange={setVapiApiKey} />
                 <VoiceSelector onVoiceSelect={handleVoiceSelect} />
+
+                {/* Voice Output Toggle */}
+                <div className="flex items-center gap-2 md:col-span-2">
+                  <label className="text-white text-xs sm:text-sm" htmlFor="toggle-voice">
+                    {isMobile ? "Voice:" : "Voice Answer:"}
+                  </label>
+                  <input
+                    type="checkbox"
+                    id="toggle-voice"
+                    checked={shouldSpeak}
+                    onChange={(e) => setShouldSpeak(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-700 bg-slate-800"
+                  />
+                  {/* Stop Voice Button */}
+                  <button
+                    className="ml-2 sm:ml-4 bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs sm:text-sm"
+                    onClick={stopSpeech}
+                  >
+                    {isMobile ? "Stop" : "Stop Voice"}
+                  </button>
+                </div>
               </div>
             </div>
+          )}
 
-            <div>
-              <ChatDisplay messages={messages} loading={loading} />
-            </div>
+          {/* Chat Are*/}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <ChatDisplay messages={messages} loading={loading} />
+          </div>
 
+          {/* Input */}
+          <div className="border-t border-slate-800 bg-slate-900 p-3 sm:p-4">
             <MessageInput
               transcript={transcript}
               isListening={isListening}
@@ -261,41 +305,22 @@ const Index = () => {
               onSendMessage={handleSendMessage}
             />
 
-            {/* Enable/disable voice output */}
-            <div className="flex items-center gap-2">
-              <label className="text-white text-xs sm:text-sm" htmlFor="toggle-voice">
-                {isMobile ? "Voice:" : "Voice Answer:"}
-              </label>
-              <input
-                type="checkbox"
-                id="toggle-voice"
-                checked={shouldSpeak}
-                onChange={(e) => setShouldSpeak(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-700 bg-slate-800"
-              />
-              {/* Stop Voice Button */}
-              <button
-                className="ml-2 sm:ml-4 bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs sm:text-sm"
-                onClick={stopSpeech}
-              >
-                {isMobile ? "Stop" : "Stop Voice"}
-              </button>
+            {/* Status  */}
+            <div className="mt-2 flex justify-between items-center">
+              <p className="text-xs sm:text-sm text-slate-400 flex items-center gap-2">
+                {isListening ? (
+                  <>
+                    <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+                    {isMobile ? "Listening" : "Listening..."}
+                  </>
+                ) : (
+                  <>
+                    <span className="inline-block h-2 w-2 rounded-full bg-slate-600"></span>
+                    {isMobile ? "Mic off" : "Microphone off"}
+                  </>
+                )}
+              </p>
             </div>
-          </div>
-          <div className="flex justify-between border-t border-slate-800 p-2 sm:p-4 bg-slate-900">
-            <p className="text-xs sm:text-sm text-slate-400 flex items-center gap-2">
-              {isListening ? (
-                <>
-                  <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-                  {isMobile ? "Listening" : "Listening..."}
-                </>
-              ) : (
-                <>
-                  <span className="inline-block h-2 w-2 rounded-full bg-slate-600"></span>
-                  {isMobile ? "Mic off" : "Microphone off"}
-                </>
-              )}
-            </p>
           </div>
         </div>
       </div>
