@@ -9,7 +9,7 @@ import { sendMessageToGemini, type Message } from "@/utils/aiHelpers"
 import { stripMarkdown } from "@/utils/textProcessing"
 import { Mic, Settings } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
-import Alogo from "/brainLogo.png"
+import Alogo from "/officialLogo.png"
 
 const speakWithBrowserTTS = (text: string, voice?: SpeechSynthesisVoice) => {
   if ("speechSynthesis" in window) {
@@ -49,7 +49,7 @@ const stopSpeech = () => {
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
 
-const Index = () => {
+const Home = () => {
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState("")
   const [messages, setMessages] = useState<Message[]>([])
@@ -250,5 +250,5 @@ const Index = () => {
   )
 }
 
-export default Index
+export default Home
 
