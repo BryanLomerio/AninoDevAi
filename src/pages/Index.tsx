@@ -217,7 +217,7 @@ const Index = () => {
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-gray-500 bg-[#272727] p-3 sm:p-4">
+          <div className="bg-[#272727] rounded-md p-3 sm:p-4">
             <MessageInput
               transcript={transcript}
               isListening={isListening}
