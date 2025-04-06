@@ -85,14 +85,14 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
   return (
     <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-          className=" border border-gray-700 mb-10 overflow-hidden bg-[#272727]"
-        >
+     {isOpen && (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className={`${isMobile ? "fixed bottom-0 left-0 right-0 z-50" : ""} border border-gray-700 mb-10 overflow-hidden bg-[#272727]`}
+    >
           <div className="p-3">
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-white text-sm font-medium font-poppins">Settings</h3>
