@@ -190,8 +190,6 @@ const Home = () => {
               alt="AI Logo"
               className="w-[900px] h-[600px] object-contain  transition-transform transform hover:scale-105"
             />
-
-
                 <Mic className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-400" />
               </div>
               AninoDevAI
