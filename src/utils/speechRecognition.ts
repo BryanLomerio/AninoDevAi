@@ -1,4 +1,3 @@
-
 export const initSpeechRecognition = (
   onResult: (text: string) => void,
   onError: (error: any) => void
@@ -7,13 +6,14 @@ export const initSpeechRecognition = (
     return null;
   }
 
-  const SpeechRecognitionAPI = (window as any).SpeechRecognition || 
-                             (window as any).webkitSpeechRecognition;
-  
+  const SpeechRecognitionAPI = (window as any).SpeechRecognition ||
+                               (window as any).webkitSpeechRecognition;
+
   const recognition = new SpeechRecognitionAPI();
   recognition.continuous = true;
   recognition.interimResults = true;
-  
+  recognition.lang = "en-US";
+
   recognition.onresult = (event: any) => {
     let interimTranscript = '';
     for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -30,6 +30,6 @@ export const initSpeechRecognition = (
   };
 
   recognition.onerror = onError;
-  
+
   return recognition;
 };
