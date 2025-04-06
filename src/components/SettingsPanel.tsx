@@ -91,7 +91,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          className="bg-slate-800 border-b border-slate-700 overflow-hidden"
+          className=" border border-gray-700 mb-10 overflow-hidden bg-[#272727]"
         >
           <div className="p-3">
             <div className="flex justify-between items-center mb-3">
@@ -106,19 +106,15 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="bg-slate-900 p-2 rounded-md border border-slate-700">
-                  <h4 className="text-xs text-slate-300 mb-2 font-poppins">API Keys</h4>
-                  <ApiKeyInputs vapiApiKey={vapiApiKey} onVapiKeyChange={onVapiKeyChange} />
-                </div>
 
-                <div className="bg-slate-900 p-2 rounded-md border border-slate-700">
+                <div className=" p-2 rounded-md border border-gray-700">
                   <h4 className="text-xs text-slate-300 mb-2 font-poppins">Voice Settings</h4>
                   <VoiceSelector onVoiceSelect={onVoiceSelect} />
                 </div>
               </div>
 
               {/* Voice Output Controls */}
-              <div className="bg-slate-900 p-2 rounded-md border border-slate-700">
+              <div className=" p-2 rounded-md border border-gray-700">
                 <h4 className="text-xs text-slate-300 mb-2 font-poppins">Voice Output</h4>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
