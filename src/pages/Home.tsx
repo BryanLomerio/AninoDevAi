@@ -184,8 +184,12 @@ const Home = () => {
           <div className=" bg-[#1e1e1e] p-3 sm:p-4 flex justify-between items-center">
             <div className="text-lg text-gray-400 sm:text-xl font-medium flex items-center gap-2">
               <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-slate-800 flex items-center justify-center">
-
-                <img src={Alogo} alt="" />
+{/* Logooooo */}
+              <img
+          src={Alogo}
+          alt="AI Logo"
+          className="bg-white w-full p-1 h-auto object-contain rounded-lg shadow-lg transition-transform transform hover:scale-105"
+        />
                 <Mic className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-400" />
               </div>
               AninoDevAI
