@@ -1,6 +1,6 @@
 # AninoDevAI - Voice AI Assistant
 <div align="center">
-  <img src="public/devai.png" alt="AninoDevAI Logo" width="auto" height="3s00"/>
+  <img src="public/devai.png" alt="AninoDevAI Logo" width="auto" height="300"/>
 </div>
 
 A voice-enabled AI assistant that allows natural conversations through speech recognition and synthesis, powered by Google's Gemini AI.
