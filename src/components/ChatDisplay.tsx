@@ -73,7 +73,7 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading }) => {
         {messages.length === 0 && !loading ? (
           <div className="h-full flex flex-col items-center justify-center text-slate-400">
             <Bot className="h-12 w-12 mb-3 opacity-50" />
-            <p className="text-sm">Start a conversation with AninoDev</p>
+            <p className="text-sm">Start a conversation with AninoDevAI</p>
           </div>
         ) : (
           <div className="max-w-7xl mx-auto w-full">
@@ -99,7 +99,7 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading }) => {
                     ) : (
                       <>
                         <Bot className="h-3.5 w-3.5 text-slate-400" />
-                        <span className="text-xs font-medium text-slate-300">AninoDev</span>
+                        <span className="text-xs font-medium text-slate-300">AninoDevAI</span>
                       </>
                     )}
                   </div>
@@ -151,7 +151,7 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading }) => {
                 <div className=" p-4 max-w-full md:max-w-[80%]">
                   <div className="flex items-center gap-2 mb-2 border-b border-slate-600 pb-2">
                     <Bot className="h-3.5 w-3.5 text-slate-400" />
-                    <span className="text-xs font-medium text-slate-300">AninoDev</span>
+                    <span className="text-xs font-medium text-slate-300">AninoDevAI</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex space-x-1">
