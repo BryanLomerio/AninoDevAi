@@ -68,7 +68,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
         <div className="flex justify-between items-center p-4 border-b border-slate-700">
           <h2 className="text-lg font-medium text-white">Settings</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 text-red-500" />
           </Button>
         </div>
 
@@ -101,7 +101,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     id="voice-select"
                     value={selectedVoiceIndex}
                     onChange={handleVoiceChange}
-                    className="w-full bg-slate-800 text-white rounded-md border border-slate-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-600"
+                    className="w-full bg-[#1e1e1e] text-white rounded-md border border-slate-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-600"
                   >
                     {voices.map((voice, index) => (
                       <option key={`${voice.name}-${index}`} value={index}>
