@@ -1,14 +1,13 @@
-import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { toast } from "@/hooks/use-toast"
-import ApiKeyInputs from "@/components/ApiKeyInputs"
 import ChatDisplay from "@/components/ChatDisplay"
 import MessageInput from "@/components/MessageInput"
+import SettingsPanel from "@/components/SettingsPanel"
 import { initSpeechRecognition } from "@/utils/speechRecognition"
 import { loadVapiSDK, createVapiCall } from "@/utils/vapiHelper"
 import { sendMessageToGemini, type Message } from "@/utils/aiHelpers"
 import { stripMarkdown } from "@/utils/textProcessing"
-import { Headphones, Mic, Settings, X } from "lucide-react"
+import { Mic, Settings } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 
 const speakWithBrowserTTS = (text: string, voice?: SpeechSynthesisVoice) => {
@@ -45,59 +44,6 @@ const stopSpeech = () => {
   if ("speechSynthesis" in window) {
     window.speechSynthesis.cancel()
   }
-}
-
-const VoiceSelector: React.FC<{ onVoiceSelect: (voice: SpeechSynthesisVoice) => void }> = ({ onVoiceSelect }) => {
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
-  const [selectedVoiceName, setSelectedVoiceName] = useState("")
-  const isMobile = useIsMobile()
-
-  useEffect(() => {
-    const loadVoices = () => {
-      const availableVoices = window.speechSynthesis.getVoices()
-      setVoices(availableVoices)
-      if (availableVoices.length > 0 && !selectedVoiceName) {
-        setSelectedVoiceName(availableVoices[0].name)
-        onVoiceSelect(availableVoices[0])
-      }
-    }
-
-    loadVoices()
-
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = loadVoices
-    }
-  }, [onVoiceSelect, selectedVoiceName])
-
-  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const voiceName = event.target.value
-    setSelectedVoiceName(voiceName)
-    const voice = voices.find((v) => v.name === voiceName)
-    if (voice) {
-      onVoiceSelect(voice)
-    }
-  }
-
-  return (
-    <div className="flex items-center gap-1">
-      <Headphones className="h-4 w-4 text-white opacity-70" />
-      <label htmlFor="voice-select" className="text-white text-xs whitespace-nowrap">
-        {isMobile ? "Voice:" : "Voice:"}
-      </label>
-      <select
-        id="voice-select"
-        value={selectedVoiceName}
-        onChange={handleChange}
-        className="flex-1 p-1 text-xs rounded-md border border-slate-700 bg-slate-800 text-white focus:ring-1 focus:ring-slate-600 focus:outline-none"
-      >
-        {voices.map((voice) => (
-          <option key={voice.name} value={voice.name} className="bg-slate-800 text-white">
-            {isMobile ? voice.name : `${voice.name} (${voice.lang})`}
-          </option>
-        ))}
-      </select>
-    </div>
-  )
 }
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
@@ -230,7 +176,7 @@ const Index = () => {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="h-screen bg-slate-900 flex flex-col items-center">
+    <div className="h-screen bg-slate-900 flex flex-col items-center font-poppins">
       <div className="w-full max-w-4xl h-full flex flex-col">
         <div className="flex-1 flex flex-col overflow-hidden border border-slate-700 bg-slate-900 shadow-md rounded-lg">
           {/* Header */}
@@ -243,58 +189,31 @@ const Index = () => {
             </div>
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="text-slate-400 hover:text-white transition-colors p-1 rounded-full hover:bg-slate-800"
+              aria-label="Settings"
             >
               <Settings className="h-5 w-5" />
             </button>
           </div>
 
           {/* Settings Panel */}
-          {showSettings && (
-            <div className="bg-slate-800 p-3 border-b border-slate-700">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-white text-sm font-medium">Settings</h3>
-                <button
-                  onClick={() => setShowSettings(false)}
-                  className="text-slate-400 hover:text-white transition-colors"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <ApiKeyInputs vapiApiKey={vapiApiKey} onVapiKeyChange={setVapiApiKey} />
-                <VoiceSelector onVoiceSelect={handleVoiceSelect} />
+          <SettingsPanel
+            isOpen={showSettings}
+            onClose={() => setShowSettings(false)}
+            vapiApiKey={vapiApiKey}
+            onVapiKeyChange={setVapiApiKey}
+            onVoiceSelect={handleVoiceSelect}
+            shouldSpeak={shouldSpeak}
+            onSpeakToggle={setShouldSpeak}
+            onStopSpeech={stopSpeech}
+          />
 
-                {/* Voice Output Toggle */}
-                <div className="flex items-center gap-2 md:col-span-2">
-                  <label className="text-white text-xs sm:text-sm" htmlFor="toggle-voice">
-                    {isMobile ? "Voice:" : "Voice Answer:"}
-                  </label>
-                  <input
-                    type="checkbox"
-                    id="toggle-voice"
-                    checked={shouldSpeak}
-                    onChange={(e) => setShouldSpeak(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-700 bg-slate-800"
-                  />
-                  {/* Stop Voice Button */}
-                  <button
-                    className="ml-2 sm:ml-4 bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs sm:text-sm"
-                    onClick={stopSpeech}
-                  >
-                    {isMobile ? "Stop" : "Stop Voice"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Chat Are*/}
+          {/* Chat Area */}
           <div className="flex-1 flex flex-col overflow-hidden">
             <ChatDisplay messages={messages} loading={loading} />
           </div>
 
-          {/* Input */}
+          {/* Input Area */}
           <div className="border-t border-slate-800 bg-slate-900 p-3 sm:p-4">
             <MessageInput
               transcript={transcript}
@@ -305,7 +224,7 @@ const Index = () => {
               onSendMessage={handleSendMessage}
             />
 
-            {/* Status  */}
+            {/* Status indicator */}
             <div className="mt-2 flex justify-between items-center">
               <p className="text-xs sm:text-sm text-slate-400 flex items-center gap-2">
                 {isListening ? (
