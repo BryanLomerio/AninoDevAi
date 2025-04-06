@@ -177,16 +177,16 @@ const Index = () => {
 
   // ── Render
   return (
-    <div className="h-screen bg-slate-900 flex flex-col items-center font-poppins">
+    <div className="h-screen bg-[#1e1e1e] flex flex-col items-center font-poppins">
       <div className="w-full max-w-4xl h-full flex flex-col">
-        <div className="flex-1 flex flex-col overflow-hidden border border-slate-700 bg-slate-900 shadow-md rounded-lg">
+        <div className="flex-1 flex flex-col overflow-hidden  bg-[#1e1e1e] rounded-lg">
           {/* Header */}
-          <div className="border-b border-slate-800 bg-slate-900 p-3 sm:p-4 flex justify-between items-center">
-            <div className="text-lg sm:text-xl font-medium text-white flex items-center gap-2">
+          <div className=" bg-[#1e1e1e] p-3 sm:p-4 flex justify-between items-center">
+            <div className="text-lg text-gray-400 sm:text-xl font-medium flex items-center gap-2">
               <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-slate-800 flex items-center justify-center">
 
                 <img src={Alogo} alt="" />
-                <Mic className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
+                <Mic className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-400" />
               </div>
               AninoDevAI
             </div>
@@ -217,7 +217,7 @@ const Index = () => {
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-slate-800 bg-slate-900 p-3 sm:p-4">
+          <div className="border-t border-gray-500 bg-[#272727] p-3 sm:p-4">
             <MessageInput
               transcript={transcript}
               isListening={isListening}

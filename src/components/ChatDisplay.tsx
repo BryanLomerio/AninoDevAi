@@ -68,7 +68,7 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading }) => {
   }, [messages, loading])
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 bg-slate-800 text-white">
+    <div className="flex-1 p-4 bg-[#1e1e1e] text-white">
       {messages.length === 0 && !loading && (
         <div className="h-full flex flex-col items-center justify-center text-slate-400">
           <Bot className="h-12 w-12 mb-3 opacity-50" />
@@ -80,7 +80,7 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading }) => {
         <div key={index} className={`mb-4 ${msg.role === "user" ? "flex justify-end" : "flex justify-start"}`}>
           <div
             className={`max-w-[85%] rounded-lg p-3 ${
-              msg.role === "user" ? "bg-slate-700 text-white" : "bg-slate-900 border border-slate-700 text-white"
+              msg.role === "user" ? " text-white" : " text-white"
             }`}
           >
             <div className="flex items-center gap-2 mb-2">
@@ -136,7 +136,7 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading }) => {
 
       {loading && (
         <div className="flex justify-start mb-4">
-          <div className="max-w-[85%] rounded-lg p-3 bg-slate-900 border border-slate-700 text-white">
+          <div className="max-w-[85%] rounded-lg p-3 text-white">
             <div className="flex items-center gap-2 mb-2">
               <Bot className="h-3.5 w-3.5 text-slate-400" />
               <span className="text-xs font-medium text-slate-300">AninoDev</span>

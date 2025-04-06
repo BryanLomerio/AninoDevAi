@@ -51,7 +51,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
         size={isMobile ? "icon" : "default"}
       >
         {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-        {!isMobile && <span className="ml-2">{isListening ? "Stop" : "Record"}</span>}
+        {!isMobile && <span className="ml-2 ">{isListening ? "Stop" : "Record"}</span>}
       </Button>
 
       <div className="relative flex-1">
@@ -61,7 +61,7 @@ const MessageInput: React.FC<MessageInputProps> = ({
           onChange={(e) => onTranscriptChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type or speak your message..."
-          className="w-full resize-none overflow-hidden rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-slate-600 min-h-[40px] max-h-[120px]"
+          className="w-full resize-none overflow-hidden rounded-md border border-slate-700 bg-[#1E1E1E] px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-slate-600 min-h-[40px] max-h-[120px]"
           rows={1}
         />
       </div>
