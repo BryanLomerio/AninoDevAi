@@ -68,101 +68,116 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading }) => {
   }, [messages, loading])
 
   return (
-    <div className="flex-1 p-4 bg-[#1e1e1e] text-white overflow-y-auto">
-      {messages.length === 0 && !loading && (
-        <div className="h-full flex flex-col items-center justify-center text-slate-400">
-          <Bot className="h-12 w-12 mb-3 opacity-50" />
-          <p className="text-sm">Start a conversation with AninoDev</p>
-        </div>
-      )}
-
-      {messages.map((msg, index) => (
-        <div key={index} className={`mb-4 ${msg.role === "user" ? "flex justify-end" : "flex justify-start"}`}>
-          <div
-            className={`max-w-[85%] rounded-lg p-3 ${
-              msg.role === "user" ? " text-white" : " text-white"
-            }`}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              {msg.role === "user" ? (
-                <>
-                  <span className="text-xs font-medium text-slate-300">You</span>
-                  <User className="h-3.5 w-3.5 text-slate-400" />
-                </>
-              ) : (
-                <>
-                  <Bot className="h-3.5 w-3.5 text-slate-400" />
-                  <span className="text-xs font-medium text-slate-300">AninoDev</span>
-                </>
-              )}
-            </div>
-
-            <div className="prose prose-sm prose-invert max-w-none">
-              <ReactMarkdown
-                components={{
-                  p: ({ node, children }) => <p className="text-sm mb-2">{children}</p>,
-                  a: ({ node, children, href }) => (
-                    <a href={href} className="text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
-                      {children}
-                    </a>
-                  ),
-                  ul: ({ node, children }) => <ul className="list-disc pl-5 mb-2 text-sm">{children}</ul>,
-                  ol: ({ node, children }) => <ol className="list-decimal pl-5 mb-2 text-sm">{children}</ol>,
-                  li: ({ node, children }) => <li className="mb-1">{children}</li>,
-                  h1: ({ node, children }) => <h1 className="text-lg font-bold mb-2 mt-3">{children}</h1>,
-                  h2: ({ node, children }) => <h2 className="text-md font-bold mb-2 mt-3">{children}</h2>,
-                  h3: ({ node, children }) => <h3 className="text-sm font-bold mb-2 mt-3">{children}</h3>,
-                  blockquote: ({ node, children }) => (
-                    <blockquote className="border-l-2 border-slate-600 pl-3 italic my-2">{children}</blockquote>
-                  ),
-                  code({ node, inline, className, children, ...props }) {
-                    const match = /language-(\w+)/.exec(className || "")
-                    return !inline && match ? (
-                      <CodeBlock language={match[1]} value={String(children).replace(/\n$/, "")} />
-                    ) : (
-                      <code className="bg-slate-700 px-1 py-0.5 rounded text-xs" {...props}>
-                        {children}
-                      </code>
-                    )
-                  },
-                }}
+    <div className="w-full h-full flex flex-col bg-[#1e1e1e] text-white overflow-hidden">
+      <div className="flex-1 w-full overflow-y-auto px-4 md:px-6 py-4">
+        {messages.length === 0 && !loading ? (
+          <div className="h-full flex flex-col items-center justify-center text-slate-400">
+            <Bot className="h-12 w-12 mb-3 opacity-50" />
+            <p className="text-sm">Start a conversation with AninoDev</p>
+          </div>
+        ) : (
+          <div className="max-w-7xl mx-auto w-full">
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`mb-6 w-full ${msg.role === "user" ? "flex justify-end" : "flex justify-start"}`}
               >
-                {msg.parts[0].text}
-              </ReactMarkdown>
-            </div>
-          </div>
-        </div>
-      ))}
+                <div
+                  className={`
+                    ${msg.role === "user" ? "" : ""}
 
-      {loading && (
-        <div className="flex justify-start mb-4">
-          <div className="max-w-[85%] rounded-lg p-3 text-white">
-            <div className="flex items-center gap-2 mb-2">
-              <Bot className="h-3.5 w-3.5 text-slate-400" />
-              <span className="text-xs font-medium text-slate-300">AninoDev</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex space-x-1">
-                <div
-                  className="h-2 w-2 bg-slate-500 rounded-full animate-bounce"
-                  style={{ animationDelay: "0ms" }}
-                ></div>
-                <div
-                  className="h-2 w-2 bg-slate-500 rounded-full animate-bounce"
-                  style={{ animationDelay: "150ms" }}
-                ></div>
-                <div
-                  className="h-2 w-2 bg-slate-500 rounded-full animate-bounce"
-                  style={{ animationDelay: "300ms" }}
-                ></div>
+                    ${msg.role === "user" ? "rounded-tr-none" : "rounded-tl-none"}
+                    max-w-full md:max-w-[80%]
+                  `}
+                >
+                  <div className="flex items-center gap-2 mb-2 border-b border-slate-600 pb-2">
+                    {msg.role === "user" ? (
+                      <>
+                        <span className="text-xs font-medium text-slate-300">You</span>
+                        <User className="h-3.5 w-3.5 text-slate-400" />
+                      </>
+                    ) : (
+                      <>
+                        <Bot className="h-3.5 w-3.5 text-slate-400" />
+                        <span className="text-xs font-medium text-slate-300">AninoDev</span>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="prose prose-sm prose-invert max-w-none">
+                    <ReactMarkdown
+                      components={{
+                        p: ({ node, children }) => <p className="text-sm mb-2">{children}</p>,
+                        a: ({ node, children, href }) => (
+                          <a
+                            href={href}
+                            className="text-blue-400 hover:underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {children}
+                          </a>
+                        ),
+                        ul: ({ node, children }) => <ul className="list-disc pl-5 mb-2 text-sm">{children}</ul>,
+                        ol: ({ node, children }) => <ol className="list-decimal pl-5 mb-2 text-sm">{children}</ol>,
+                        li: ({ node, children }) => <li className="mb-1">{children}</li>,
+                        h1: ({ node, children }) => <h1 className="text-lg font-bold mb-2 mt-3">{children}</h1>,
+                        h2: ({ node, children }) => <h2 className="text-md font-bold mb-2 mt-3">{children}</h2>,
+                        h3: ({ node, children }) => <h3 className="text-sm font-bold mb-2 mt-3">{children}</h3>,
+                        blockquote: ({ node, children }) => (
+                          <blockquote className="border-l-2 border-slate-600 pl-3 italic my-2">{children}</blockquote>
+                        ),
+                        code({ node, inline, className, children, ...props }) {
+                          const match = /language-(\w+)/.exec(className || "")
+                          return !inline && match ? (
+                            <CodeBlock language={match[1]} value={String(children).replace(/\n$/, "")} />
+                          ) : (
+                            <code className="bg-slate-700 px-1 py-0.5 rounded text-xs" {...props}>
+                              {children}
+                            </code>
+                          )
+                        },
+                      }}
+                    >
+                      {msg.parts[0].text}
+                    </ReactMarkdown>
+                  </div>
+                </div>
               </div>
-              <span className="text-sm text-slate-400">Thinking...</span>
-            </div>
-          </div>
-        </div>
-      )}
+            ))}
 
-      <div ref={messagesEndRef} />
+            {loading && (
+              <div className="flex justify-start mb-6 w-full">
+                <div className=" p-4 max-w-full md:max-w-[80%]">
+                  <div className="flex items-center gap-2 mb-2 border-b border-slate-600 pb-2">
+                    <Bot className="h-3.5 w-3.5 text-slate-400" />
+                    <span className="text-xs font-medium text-slate-300">AninoDev</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex space-x-1">
+                      <div
+                        className="h-2 w-2 bg-slate-500 rounded-full animate-bounce"
+                        style={{ animationDelay: "0ms" }}
+                      ></div>
+                      <div
+                        className="h-2 w-2 bg-slate-500 rounded-full animate-bounce"
+                        style={{ animationDelay: "150ms" }}
+                      ></div>
+                      <div
+                        className="h-2 w-2 bg-slate-500 rounded-full animate-bounce"
+                        style={{ animationDelay: "300ms" }}
+                      ></div>
+                    </div>
+                    <span className="text-sm text-slate-400">Thinking...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
