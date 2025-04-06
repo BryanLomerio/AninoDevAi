@@ -9,7 +9,7 @@ import { sendMessageToGemini, type Message } from "@/utils/aiHelpers"
 import { stripMarkdown } from "@/utils/textProcessing"
 import { Mic, Settings } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
-import Alogo from "/officialLogo.png"
+import Alogo from "/brain.png"
 
 const speakWithBrowserTTS = (text: string, voice?: SpeechSynthesisVoice) => {
   if ("speechSynthesis" in window) {
@@ -185,11 +185,13 @@ const Home = () => {
             <div className="text-lg text-gray-400 sm:text-xl font-medium flex items-center gap-2">
               <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-slate-800 flex items-center justify-center">
 {/* Logooooo */}
-              <img
-          src={Alogo}
-          alt="AI Logo"
-          className="bg-white w-full p-1 h-auto object-contain rounded-lg shadow-lg transition-transform transform hover:scale-105"
-        />
+            <img
+              src={Alogo}
+              alt="AI Logo"
+              className="w-[900px] h-[600px] object-contain  transition-transform transform hover:scale-105"
+            />
+
+
                 <Mic className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-400" />
               </div>
               AninoDevAI
@@ -221,7 +223,7 @@ const Home = () => {
           </div>
 
           {/* Input Area */}
-          <div className="bg-[#272727] rounded-md p-3 sm:p-4">
+          <div className="bg-[#272727] rounded-tl-md rounded-tr-md p-3 sm:p-4">
             <MessageInput
               transcript={transcript}
               isListening={isListening}
