@@ -18,7 +18,7 @@ export const stripMarkdown = (text: string): string => {
       // Links
       .replace(/\[([^\]]+)\]$$([^)]+)$$/g, "$1")
 
-      // Code blocks and inline code
+      // Code blocks
       .replace(/```[\s\S]*?```/g, "code block omitted")
       .replace(/`([^`]+)`/g, "$1")
 

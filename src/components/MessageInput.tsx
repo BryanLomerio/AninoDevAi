@@ -17,8 +17,8 @@ interface MessageInputProps {
 const PROMPT_POOL = [
   "Tell me about artificial intelligence",
   "How can I improve my productivity?",
-  "What's the weather like today?",
   "Give me a creative idea",
+  "How to Improve my Math Skills",
   "Write a short poem about nature",
   "Explain quantum computing",
   "Tell me a fun fact about space",
