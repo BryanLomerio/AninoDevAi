@@ -63,7 +63,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   if (!isOpen) return null
 
   return (
-    <div className="absolute inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
       <div className="bg-[#272727] rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-4 border-b border-slate-700">
           <h2 className="text-lg font-medium text-white">Settings</h2>
