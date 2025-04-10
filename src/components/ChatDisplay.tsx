@@ -74,6 +74,7 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading }) => {
           <div className="h-full flex flex-col items-center justify-center text-slate-400">
             <Bot className="h-12 w-12 mb-3 opacity-50" />
             <p className="text-sm">Start a conversation with AninoDevAI</p>
+            <p className="text-sm">You can turn off the AI voice in the settings.</p>
           </div>
         ) : (
           <div className="max-w-7xl mx-auto w-full">
