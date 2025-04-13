@@ -51,7 +51,7 @@ const CodeBlock: React.FC<{ language: string; value: string }> = ({ language, va
           padding: "1rem",
           fontSize: "0.875rem",
           borderRadius: 0,
-          background: "#1e293b",
+          background: "#000000",
         }}
       >
         {value}
