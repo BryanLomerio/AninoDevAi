@@ -12,10 +12,10 @@ interface SpeechRecognition {
 
 interface Window {
   SpeechRecognition: {
-    new(): SpeechRecognition;
+    new (): SpeechRecognition;
   };
   webkitSpeechRecognition: {
-    new(): SpeechRecognition;
+    new (): SpeechRecognition;
   };
 }
 
