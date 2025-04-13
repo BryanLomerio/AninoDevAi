@@ -89,7 +89,7 @@ const MessageInput = ({
             variant="ghost"
             size="icon"
             className={`absolute right-2 bottom-2 p-1 rounded-full ${
-              isImageRequest ? "text-purple-400 bg-purple-900/20" : "text-gray-400 hover:text-white"
+              isImageRequest ? "text-purple-400 bg-purple-900/20" : "text-gray-400 hover:text-black"
             }`}
             type="button"
           >
