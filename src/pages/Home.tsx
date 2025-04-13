@@ -8,6 +8,7 @@ import { loadVapiSDK, createVapiCall } from "@/utils/vapiHelper"
 import {
   sendMessageToGemini,
   generateImageFromGemini,
+  speakWithBrowserTTS,
   type Message,
   isImageGenerationRequest,
   extractImagePrompt,
@@ -16,36 +17,6 @@ import { stripMarkdown } from "@/utils/textProcessing"
 import { Settings } from "lucide-react"
 import { useIsMobile } from "@/lib/use-mobile"
 import Alogo from "/brain.png"
-
-const speakWithBrowserTTS = (text: string, voice?: SpeechSynthesisVoice) => {
-  if ("speechSynthesis" in window) {
-    const cleanText = stripMarkdown(text)
-    const utterance = new SpeechSynthesisUtterance(cleanText)
-
-    utterance.onerror = (event) => {
-      console.error("Speech synthesis error:", event)
-    }
-
-    if (voice) {
-      utterance.voice = voice
-    } else {
-      const voices = window.speechSynthesis.getVoices()
-      const defaultVoice =
-        voices.find(
-          (v) =>
-            v.name.toLowerCase().includes("male") ||
-            /david|mark|fred|alex|paul|zarvox|bruce/.test(v.name.toLowerCase()),
-        ) || voices[0]
-      utterance.voice = defaultVoice
-    }
-
-    utterance.rate = 1.2
-    utterance.pitch = 1
-    utterance.volume = 3
-
-    window.speechSynthesis.speak(utterance)
-  }
-}
 
 const stopSpeech = () => {
   if ("speechSynthesis" in window) {
@@ -144,121 +115,116 @@ const Home = () => {
   }
 
   const handleSendMessage = async (isImageRequestFromButton = false) => {
-    if (!transcript.trim()) return;
+    if (!transcript.trim()) return
 
     const userMessage: Message = {
       role: "user",
       parts: [{ text: transcript }],
-    };
+    }
 
-    setMessages((prev) => [...prev, userMessage]);
-    setTranscript("");
-    setLoading(true);
+    setMessages((prev) => [...prev, userMessage])
+    setTranscript("")
+    setLoading(true)
 
     try {
+      const isTextBasedImageRequest = isImageGenerationRequest(userMessage.parts[0].text)
+      const shouldGenerateImage = isImageRequestFromButton || isTextBasedImageRequest
 
-      const isTextBasedImageRequest = isImageGenerationRequest(userMessage.parts[0].text);
-      const shouldGenerateImage = isImageRequestFromButton || isTextBasedImageRequest;
-
-      // If image request
       if (isTextBasedImageRequest && !isImageRequestFromButton) {
         const fallbackMessage: Message = {
           role: "assistant",
           parts: [{ text: "Please activate image generation to generate an image like that." }],
-        };
-        setMessages((prev) => [...prev, fallbackMessage]);
-        if (shouldSpeak) {
-          speakWithBrowserTTS(fallbackMessage.parts[0].text, selectedVoice || undefined);
         }
-        setLoading(false);
-        return;
+        setMessages((prev) => [...prev, fallbackMessage])
+        if (shouldSpeak) {
+          speakWithBrowserTTS(fallbackMessage.parts[0].text, selectedVoice || undefined)
+        }
+        setLoading(false)
+        return
       }
 
       if (shouldGenerateImage) {
-
         const imagePrompt = isImageRequestFromButton
           ? userMessage.parts[0].text
-          : extractImagePrompt(userMessage.parts[0].text);
-        console.log("Generating image for prompt:", imagePrompt);
+          : extractImagePrompt(userMessage.parts[0].text)
+        console.log("Generating image for prompt:", imagePrompt)
 
         try {
-          const { text, imageSrc } = await generateImageFromGemini(GEMINI_API_KEY, imagePrompt);
-          const responseText = text || `Here's the image I generated based on: "${imagePrompt}"`;
+          const { text, imageSrc } = await generateImageFromGemini(GEMINI_API_KEY, imagePrompt)
+          const responseText = text || `Here's the image I generated based on: "${imagePrompt}"`
           const assistantMessage: Message = {
             role: "assistant",
             parts: [{ text: responseText }],
-          };
+          }
 
-          setMessages((prev) => [...prev, assistantMessage]);
+          setMessages((prev) => [...prev, assistantMessage])
 
           if (imageSrc) {
             setGeneratedImages((prev) => ({
               ...prev,
               [messages.length + 1]: imageSrc,
-            }));
-            console.log("Image generated successfully");
+            }))
+            console.log("Image generated successfully")
           } else {
-            console.warn("No image was generated, showing text response only.");
+            console.warn("No image was generated, showing text response only.")
           }
 
           if (shouldSpeak) {
-            speakWithBrowserTTS(responseText, selectedVoice || undefined);
+            speakWithBrowserTTS(responseText, selectedVoice || undefined)
           }
         } catch (imageError) {
-          console.error("Image generation error:", imageError);
+          console.error("Image generation error:", imageError)
           const fallbackMessage: Message = {
             role: "assistant",
             parts: [{
               text: "I couldn't generate that image. This might be due to content policy restrictions or a technical issue. Let me try to answer with text instead.",
             }],
-          };
+          }
 
-          setMessages((prev) => [...prev, fallbackMessage]);
+          setMessages((prev) => [...prev, fallbackMessage])
 
-          const { assistantMessage, responseText } = await sendMessageToGemini(GEMINI_API_KEY, messages, userMessage);
-          setMessages((prev) => [...prev, assistantMessage]);
+          const { assistantMessage, responseText } = await sendMessageToGemini(GEMINI_API_KEY, messages, userMessage)
+          setMessages((prev) => [...prev, assistantMessage])
 
           if (shouldSpeak) {
-            speakWithBrowserTTS(responseText, selectedVoice || undefined);
+            speakWithBrowserTTS(responseText, selectedVoice || undefined)
           }
         }
       } else {
-        const { assistantMessage, responseText } = await sendMessageToGemini(GEMINI_API_KEY, messages, userMessage);
-        setMessages((prev) => [...prev, assistantMessage]);
+        const { assistantMessage, responseText } = await sendMessageToGemini(GEMINI_API_KEY, messages, userMessage)
+        setMessages((prev) => [...prev, assistantMessage])
 
         if (shouldSpeak) {
           if (vapiInstance.current && vapiApiKey) {
-            const cleanText = stripMarkdown(responseText);
-            const success = await createVapiCall(vapiInstance.current, cleanText);
+            const cleanText = stripMarkdown(responseText)
+            const success = await createVapiCall(vapiInstance.current, cleanText)
             if (!success) {
-              speakWithBrowserTTS(responseText, selectedVoice || undefined);
+              speakWithBrowserTTS(responseText, selectedVoice || undefined)
             }
           } else {
-            speakWithBrowserTTS(responseText, selectedVoice || undefined);
+            speakWithBrowserTTS(responseText, selectedVoice || undefined)
           }
         }
       }
     } catch (error) {
-      console.error("Error processing message:", error);
+      console.error("Error processing message:", error)
       toast({
         title: "Error",
         description: "Failed to process your request",
         variant: "destructive",
-      });
+      })
 
-      // fallback error message.
+      // Fallback error message
       const errorMessage: Message = {
         role: "assistant",
         parts: [{ text: "I'm sorry, I encountered an error processing your request. Please try again." }],
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      }
+      setMessages((prev) => [...prev, errorMessage])
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-
-  // Render
   return (
     <div className="min-h-screen bg-[#1e1e1e] flex justify-center font-poppins">
       <div className="w-full max-w-4xl flex flex-col h-screen relative">
