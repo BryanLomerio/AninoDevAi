@@ -18,7 +18,7 @@ import {
 import { stripMarkdown } from "@/utils/textProcessing"
 import { Settings } from "lucide-react"
 import { useIsMobile } from "@/lib/use-mobile"
-import Alogo from "/brain.png"
+import Alogo from "@/assets/brain.png"
 
 const stopSpeech = () => {
   if ("speechSynthesis" in window) {
@@ -248,9 +248,9 @@ const Home = () => {
           </div>
 
           <div className="flex items-center gap-3">
-              <a href="https://github.com/BryanLomerio/AninoDevAi" target="_blank" className="text-slate-400 hover:text-white">
+          {/*     <a href="https://github.com/BryanLomerio/AninoDevAi" target="_blank" className="text-slate-400 hover:text-white">
                 <FaGithub className="h-5 w-5" />
-              </a>
+              </a> */}
 
               <button
                 onClick={() => setShowSettings(!showSettings)}
