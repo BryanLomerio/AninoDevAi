@@ -76,7 +76,7 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
             <Bot className="h-12 w-12 mb-3 opacity-50" />
             <p className="text-sm">Start a conversation with AninoDevAI</p>
             <p className="text-sm">You can turn off the AI voice in the settings.</p>
-            <p className="text-sm mt-2">To Generate Image activate the image icon at the input box.</p>
+            <p className="text-sm mt-2">Click the image icon to generate an image.</p>
           </div>
         ) : (
           <div className="max-w-7xl mx-auto w-full">
