@@ -6,7 +6,7 @@
 ## Sample AI Image Generation Results
 <div align="center" style="display: flex; justify-content: center; gap: 20px;">
  <img src="public/future.png" alt="AninoDevAI Logo" width="auto" height="400"/>
-  <img src="public/vilage.png" alt="AninoDevAI Logo" width="auto" height="400"/>
+  <img src="public/village.png" alt="AninoDevAI Logo" width="auto" height="400"/>
 </div>
 
 
