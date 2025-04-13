@@ -6,6 +6,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism"
 import { Check, Copy, User, Bot } from 'lucide-react'
 
+
 interface ChatDisplayProps {
   messages: Message[]
   loading: boolean

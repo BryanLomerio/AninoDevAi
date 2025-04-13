@@ -6,6 +6,7 @@ import SettingsPanel from "@/components/SettingsPanel"
 import { initSpeechRecognition } from "@/utils/speechRecognition"
 import { loadVapiSDK, createVapiCall } from "@/utils/vapiHelper"
 import { FaGithub } from "react-icons/fa";
+import { Link } from "react-router-dom";
 import {
   sendMessageToGemini,
   generateImageFromGemini,
@@ -239,7 +240,11 @@ const Home = () => {
                 className="w-full h-full object-contain transition-transform transform hover:scale-105"
               />
             </div>
-            AninoDevAI
+              <Link to="/">
+                       <h1 className=" hover:text-white transition-colors">
+                         AninoDevAI
+                       </h1>
+                     </Link>
           </div>
 
           <div className="flex items-center gap-3">
