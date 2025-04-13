@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-import { toast } from "@/hooks/use-toast"
+import { toast } from "@/lib/use-toast"
 import ChatDisplay from "@/components/ChatDisplay"
 import MessageInput from "@/components/MessageInput"
 import SettingsPanel from "@/components/SettingsPanel"
@@ -14,7 +14,7 @@ import {
 } from "@/utils/aiHelpers"
 import { stripMarkdown } from "@/utils/textProcessing"
 import { Settings } from "lucide-react"
-import { useIsMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/lib/use-mobile"
 import Alogo from "/brain.png"
 
 const speakWithBrowserTTS = (text: string, voice?: SpeechSynthesisVoice) => {
