@@ -29,30 +29,48 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
   useEffect(() => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       const loadVoices = () => {
-        const availableVoices = window.speechSynthesis.getVoices()
-        if (availableVoices.length > 0) {
-          setVoices(availableVoices)
-          // set the default voice once.
-          if (!initialVoiceSet.current) {
-            const defaultVoiceIndex = availableVoices.findIndex(
-              (voice) =>
-                voice.name.toLowerCase().includes("male") ||
-                /david|mark|fred|alex|paul|zarvox|bruce/.test(voice.name.toLowerCase())
-            )
-            const chosenIndex = defaultVoiceIndex !== -1 ? defaultVoiceIndex : 0
-            setSelectedVoiceIndex(chosenIndex)
-            onVoiceSelect(availableVoices[chosenIndex])
-            initialVoiceSet.current = true
+        // Force voice loading
+        window.speechSynthesis.getVoices();
+
+        setTimeout(() => {
+          const availableVoices = window.speechSynthesis.getVoices()
+          if (availableVoices.length > 0) {
+            setVoices(availableVoices)
+            if (!initialVoiceSet.current) {
+              const defaultVoiceIndex = availableVoices.findIndex(
+                (voice) =>
+                  voice.name.toLowerCase().includes("male") ||
+                  /david|mark|fred|alex|paul|zarvox|bruce/.test(voice.name.toLowerCase())
+              )
+              const chosenIndex = defaultVoiceIndex !== -1 ? defaultVoiceIndex : 0
+              setSelectedVoiceIndex(chosenIndex)
+              onVoiceSelect(availableVoices[chosenIndex])
+              initialVoiceSet.current = true
+            }
           }
-        }
+        }, 100)
       }
 
-      if (window.speechSynthesis.onvoiceschanged !== undefined) {
-        window.speechSynthesis.onvoiceschanged = loadVoices
-      }
       loadVoices()
+      window.speechSynthesis.onvoiceschanged = loadVoices
+
+      // mobile-specific handling
+      const mobileReload = setInterval(loadVoices, 200)
+
+      // Clean up
+      return () => {
+        clearInterval(mobileReload)
+        window.speechSynthesis.onvoiceschanged = null
+      }
     }
   }, [onVoiceSelect])
+
+  const handleSelectClick = () => {
+    const currentVoices = window.speechSynthesis.getVoices()
+    if (currentVoices.length > 0) {
+      setVoices(currentVoices)
+    }
+  }
 
   const handleVoiceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const index = Number.parseInt(e.target.value)
@@ -101,6 +119,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     id="voice-select"
                     value={selectedVoiceIndex}
                     onChange={handleVoiceChange}
+                    onClick={handleSelectClick}
                     className="w-full bg-[#1e1e1e] text-white rounded-md border border-slate-700 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-slate-600"
                   >
                     {voices.map((voice, index) => (

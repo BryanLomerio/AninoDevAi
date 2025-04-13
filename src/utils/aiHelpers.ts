@@ -2,21 +2,26 @@ import { GoogleGenAI } from "@google/genai"
 
 export const speakWithBrowserTTS = (text: string, voice?: SpeechSynthesisVoice) => {
   if ("speechSynthesis" in window) {
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel()
+
     const utterance = new SpeechSynthesisUtterance(text)
 
     utterance.onerror = (event) => {
       console.error("Speech synthesis error:", event)
     }
 
-    if (voice) {
+    // Force get voices for mobile
+    const voices = window.speechSynthesis.getVoices()
+
+    if (voice && voices.includes(voice)) {
       utterance.voice = voice
     } else {
-      const voices = window.speechSynthesis.getVoices()
       const defaultVoice =
         voices.find(
           (v) =>
             v.name.toLowerCase().includes("male") ||
-            /david|mark|fred|alex|paul|zarvox|bruce/.test(v.name.toLowerCase()),
+            /david|mark|fred|alex|paul|zarvox|bruce/.test(v.name.toLowerCase())
         ) || voices[0]
       utterance.voice = defaultVoice
     }
@@ -25,7 +30,10 @@ export const speakWithBrowserTTS = (text: string, voice?: SpeechSynthesisVoice) 
     utterance.pitch = 1
     utterance.volume = 3
 
-    window.speechSynthesis.speak(utterance)
+    // delay for mobile
+    setTimeout(() => {
+      window.speechSynthesis.speak(utterance)
+    }, 50)
   }
 }
 
