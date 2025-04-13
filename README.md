@@ -1,16 +1,16 @@
 # AninoDevAI - Voice AI Assistant
+An AI assistant that lets you talk naturally and create images. It uses voice commands to chat and can generate images when you ask. Built with Google's Gemini AI for both conversation and image creation.
+
 <div align="center" style="display: flex; justify-content: center; gap: 20px;">
   <img src="public/devai.png" alt="AninoDevAI Logo" width="auto" height="300"/>
 </div>
 
 ## Sample AI Image Generation Results
 <div align="center" style="display: flex; justify-content: center; gap: 20px;">
- <img src="public/future.png" alt="AninoDevAI Logo" width="auto" height="400"/>
-  <img src="public/village.png" alt="AninoDevAI Logo" width="auto" height="400"/>
+ <img src="public/future.png" alt="AninoDevAI Logo" width="auto" height="500"/>
+  <img src="public/village.png" alt="AninoDevAI Logo" width="auto" height="500"/>
 </div>
 
-
-A voice-enabled AI assistant that allows natural conversations through speech recognition and synthesis, powered by Google's Gemini AI.
 
 ## Features
 - Voice input/output
