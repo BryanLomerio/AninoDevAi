@@ -1,100 +1,108 @@
-import { useState, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Upload, ImageIcon, X } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
+import { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Upload, ImageIcon, X, Code } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ImageUploaderProps {
-  onImageUpload?: (file: File) => void
-  isProcessing?: boolean
+  onImageUpload?: (file: File) => void;
+  isProcessing?: boolean;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, isProcessing = false }) => {
-  const { toast } = useToast()
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [localProcessing, setLocalProcessing] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+const ImageUploader: React.FC<ImageUploaderProps> = ({
+  onImageUpload,
+  isProcessing = false,
+}) => {
+  const { toast } = useToast();
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [localProcessing, setLocalProcessing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file)
-      const reader = new FileReader()
+      setSelectedFile(file);
+      const reader = new FileReader();
       reader.onload = () => {
-        setSelectedImage(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+        setSelectedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
+    e.preventDefault();
+    e.stopPropagation();
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0]
-      setSelectedFile(file)
-      const reader = new FileReader()
+      const file = e.dataTransfer.files[0];
+      setSelectedFile(file);
+      const reader = new FileReader();
       reader.onload = () => {
-        setSelectedImage(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+        setSelectedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const handleUploadClick = () => {
-    fileInputRef.current?.click()
-  }
+    fileInputRef.current?.click();
+  };
 
   const handleRemoveImage = () => {
-    setSelectedImage(null)
-    setSelectedFile(null)
+    setSelectedImage(null);
+    setSelectedFile(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+      fileInputRef.current.value = "";
     }
-  }
+  };
 
   const handleGenerateCode = () => {
-    if (!selectedFile) return
+    if (!selectedFile) return;
 
-    // If onImageUpload is provided, use it
     if (typeof onImageUpload === "function") {
       try {
-        onImageUpload(selectedFile)
+        onImageUpload(selectedFile);
       } catch (error) {
-        console.error("Error calling onImageUpload:", error)
+        console.error("Error calling onImageUpload:", error);
         toast({
           title: "Error",
           description: "Failed to process the image. Please try again.",
           variant: "destructive",
-        })
+        });
       }
     } else {
-      setLocalProcessing(true)
+      setLocalProcessing(true);
 
       setTimeout(() => {
-        setLocalProcessing(false)
+        setLocalProcessing(false);
         toast({
           title: "Demo Mode",
           description: "This is a demo. In a real app, this would process your image.",
-        })
-      }, 2000)
+        });
+      }, 2000);
 
-      console.log("No onImageUpload function provided. This is likely a demo or preview.")
+      console.log("No onImageUpload function provided. This is likely a demo or preview.");
     }
-  }
+  };
 
   // processing status
-  const isCurrentlyProcessing = isProcessing || localProcessing
+  const isCurrentlyProcessing = isProcessing || localProcessing;
 
   return (
     <div className="space-y-4">
-      <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        className="hidden"
+      />
 
       {!selectedImage ? (
         <div
@@ -139,7 +147,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, isProcessi
           <div className="p-3 bg-[#272727] flex justify-between items-center">
             <div className="flex items-center gap-2">
               <ImageIcon className="h-4 w-4 text-gray-400" />
-              <span className="text-sm text-gray-300 truncate max-w-[200px]">{selectedFile?.name}</span>
+              <span className="text-sm text-gray-300 truncate max-w-[200px]">
+                {selectedFile?.name}
+              </span>
             </div>
             <Button
               onClick={handleGenerateCode}
@@ -168,17 +178,25 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, isProcessi
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Processing...
+                  <span className="hidden sm:inline">Processing...</span>
+                  <span className="sm:hidden">
+                    <Code className="h-4 w-4" />
+                  </span>
                 </>
               ) : (
-                "Generate Code"
+                <>
+                  <span className="hidden sm:inline">Generate Code</span>
+                  <span className="sm:hidden">
+                    <Code className="h-4 w-4" />
+                  </span>
+                </>
               )}
             </Button>
           </div>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default ImageUploader
+export default ImageUploader;
