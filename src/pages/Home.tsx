@@ -5,6 +5,7 @@ import MessageInput from "@/components/MessageInput"
 import SettingsPanel from "@/components/SettingsPanel"
 import { initSpeechRecognition } from "@/utils/speechRecognition"
 import { loadVapiSDK, createVapiCall } from "@/utils/vapiHelper"
+import { FaGithub } from "react-icons/fa";
 import {
   sendMessageToGemini,
   generateImageFromGemini,
@@ -240,14 +241,22 @@ const Home = () => {
             </div>
             AninoDevAI
           </div>
-          <button
-            onClick={() => setShowSettings(!showSettings)}
-            className="text-slate-400 hover:text-white transition-colors p-1 rounded-full hover:bg-slate-800"
-            aria-label="Settings"
-          >
-            <Settings className="h-5 w-5" />
-          </button>
-        </div>
+
+          <div className="flex items-center gap-3">
+              <a href="https://github.com/BryanLomerio/AninoDevAi" target="_blank" className="text-slate-400 hover:text-white">
+                <FaGithub className="h-5 w-5" />
+              </a>
+
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className="text-slate-400 hover:text-white transition-colors p-1 rounded-full hover:bg-slate-800"
+                aria-label="Settings"
+              >
+                <Settings className="h-5 w-5" />
+              </button>
+            </div>
+            </div>
+
 
         {/* Settings Panel */}
         <SettingsPanel
