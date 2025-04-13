@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -70,13 +71,12 @@ export default function Home() {
               <p className="text-gray-400 mb-6">
                 Ask questions, generate content/image, or discuss ideas with our AI assistant
               </p>
-              <Button
-                onClick={() => (window.location.href = "/home")}
-                size="lg"
-                className="bg-[#1e1e1e] hover:bg-gray-600"
-              >
+              <Link to="/home">
+              <Button size="lg" className="bg-[#1e1e1e] hover:bg-gray-600">
                 Start Chatting
               </Button>
+            </Link>
+
             </div>
           </TabsContent>
 
@@ -85,7 +85,6 @@ export default function Home() {
               <h2 className="text-xl font-semibold mb-4 text-center">Image to Code</h2>
               <p className="text-gray-400 mb-6 text-center">Upload an image and get React JSX & Tailwind CSS code</p>
               <ImageUploader onImageUpload={handleImageUpload} isProcessing={isProcessing} />
-
               {generatedCode && <CodeGenerationResult generatedCode={generatedCode} onClose={handleClearResult} />}
             </div>
           </TabsContent>
