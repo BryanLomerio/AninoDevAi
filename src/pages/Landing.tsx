@@ -153,8 +153,9 @@ export default function Home() {
         </div>
 
         <footer className="text-center text-gray-500 text-sm mt-12">
-          <p>© 2025 AninoDevAI. Built with React, Tailwind CSS, and Gemini API.</p>
+          <p>© {new Date().getFullYear()} AninoDevAI. Built with React, Tailwind CSS, and Gemini API.</p>
         </footer>
+
       </div>
     </div>
   );
