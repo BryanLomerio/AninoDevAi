@@ -66,4 +66,4 @@ npm run build
 - Node.js 16+
 - Modern web browser with speech recognition support
 - Gemini API key
-- Vapi API key (optional for enhanced voice)
+- Vapi API key 
