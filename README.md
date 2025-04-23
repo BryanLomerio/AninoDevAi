@@ -17,7 +17,7 @@ An AI assistant that lets you talk naturally and create images. It uses voice co
 - Real-time speech recognition
 - AI-powered responses
 - Custom voice selection
-- Mobile responsive design
+- Mobile responsive Design
 
 ## Tech Stack
 - React + TypeScript
