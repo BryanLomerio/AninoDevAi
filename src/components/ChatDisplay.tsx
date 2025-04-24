@@ -71,7 +71,9 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
 
   return (
     <div className="w-full h-full flex flex-col bg-[#1e1e1e] text-white overflow-hidden">
-      <div className="flex-1 w-full overflow-y-auto px-4 md:px-6 py-4">
+      <div className="flex-1 w-full overflow-y-auto  [&::-webkit-scrollbar]:w-2
+  [&::-webkit-scrollbar-track]:bg-gray-100
+  [&::-webkit-scrollbar-thumb]:bg-purple-300 px-4 md:px-2 py-2">
         {messages.length === 0 && !loading ? (
           <div className="h-full flex flex-col items-center justify-center text-slate-400">
             <Bot className="h-12 w-12 mb-3 opacity-50" />
