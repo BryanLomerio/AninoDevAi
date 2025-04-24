@@ -74,7 +74,7 @@ export const sendMessageToGemini = async (
   const cleaned = normalizeInput(userMessage.parts[0].text)
 
   // Handle EVOxCharge EV charger list request
-  if (cleaned.includes("evoxcharge charger") || cleaned.includes("list of ev chargers of evoxcharge")) {
+  if (cleaned.includes("evoxcharge stations") || cleaned.includes("list of ev chargers of evoxcharge")) {
     const tableText = `### **PRIVATE**
 
 - NLEX Balintawak
