@@ -48,7 +48,7 @@ export type Message = {
 function normalizeInput(text: string): string {
   return text
     .toLowerCase()
-    .replace(/[''"]/g, "")
+    .replace(/[\u2018\u2019''"]/g, "")
     .replace(/[^a-zA-Z0-9\s\u00C0-\u024F\u1E00-\u1EFF]/g, "")
     .replace(/\s+/g, " ")
     .trim()
@@ -72,6 +72,42 @@ export const sendMessageToGemini = async (
   }
 
   const cleaned = normalizeInput(userMessage.parts[0].text)
+
+  // Handle EVOxCharge EV charger list request
+  if (cleaned.includes("evoxcharge charger") || cleaned.includes("list of ev chargers of evoxcharge")) {
+    const tableText = `### **PRIVATE**
+
+- NLEX Balintawak
+- Sta. Elena Golf Club
+- Six/NEO
+- NYK-Fil Maritime E-Training, Inc
+- NLEX ODB Compound
+- NYK-Fil Ship Management Inc.
+- Pacific Plaza Tower
+- Shang Residences at Wack Wack
+- Yusen Logistics Center - Laguna
+
+### **PUBLIC**
+
+- MOA Square
+- Newport World Resorts - 2F
+- AIA Tower
+- Acuatico Beach Resort
+- World Trade Center
+- Baguio Country Club
+- R Garage
+- IIEE Main Office
+- EVOxCharge - In.Hub Station
+- AIAI Philippines Cebu
+- Newport World Resorts - 4F (Under Maintenance)
+- Baguio Country Club
+- Escala Tagaytay`;
+    const assistantMessage: Message = {
+      role: "assistant",
+      parts: [{ text: tableText }],
+    }
+    return { assistantMessage, responseText: tableText }
+  }
 
   const creatorKeywords = [
     "who created you",
@@ -311,12 +347,7 @@ export const extractImagePrompt = (text: string): string => {
   return text
 }
 
-export type ImageGenerationResult = {
-  text?: string
-  imageSrc?: string
-}
-
-export const generateImageFromGemini = async (apiKey: string, prompt: string): Promise<ImageGenerationResult> => {
+export const generateImageFromGemini = async (apiKey: string, prompt: string): Promise<{ text?: string; imageSrc?: string }> => {
   try {
     const ai = new GoogleGenAI({ apiKey });
     console.log("Sending image generation request with prompt:", prompt);
@@ -373,4 +404,4 @@ export const generateImageFromGemini = async (apiKey: string, prompt: string): P
       imageSrc: undefined,
     };
   }
-};
+}
