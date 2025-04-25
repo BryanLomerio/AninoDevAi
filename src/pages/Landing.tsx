@@ -65,8 +65,6 @@ export default function Home() {
   </h1>
 </div>
 
-
-            <p className="text-gray-400">AI assistant for chat, image and code generation</p>
           </div>
           <div className="flex gap-4">
             <a
