@@ -122,7 +122,7 @@ export default function Home() {
                   </div>
                   <h2 className="text-xl font-semibold mb-4">Chat with AninoDevAI</h2>
                   <p className="text-gray-400 mb-6 max-w-lg mx-auto">
-                  Ask questions about programming, generate content, get code explanations, brainstorm ideas, or generate images with AninoDevAI assistant.
+                  Ask questions about programming, get code explanations, generate images with AninoDevAI assistant.
 
                   </p>
                   <Link to="/home">
