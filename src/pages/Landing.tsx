@@ -72,7 +72,7 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Button variant="outline" size="sm" className="text-gray-500 border-gray-700 hover:border-gray-500">
+              <Button variant="outline" size="sm" className="text-gray-500 bg-[#1e1e1e] border-gray-700 hover:bg-[#2A2A2A] hover:border-gray-500">
                 <Github className="h-4 w-4 mr-2" />
                 <span>GitHub</span>
               </Button>
@@ -82,9 +82,9 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Button variant="outline" size="sm" className="text-gray-500 border-gray-700 hover:border-gray-500">
-                <Coffee className="h-4 w-4 mr-2" />
-                <span>Buy me a coffee</span>
+              <Button variant="outline" size="sm" className="text-gray-500 bg-[#1e1e1e] border-gray-700 hover:bg-[#2A2A2A] hover:border-gray-500">
+                <Coffee className="h-4 w-4 mr-2 text-yellow-300" />
+                <span className="text-yellow-300">Buy me a coffee</span>
               </Button>
             </a>
           </div>
