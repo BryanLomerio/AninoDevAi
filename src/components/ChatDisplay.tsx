@@ -62,6 +62,7 @@ const CodeBlock: React.FC<{ language: string; value: string }> = ({ language, va
 const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedImages }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
+  const [ratings, setRatings] = useState<Record<number, 1 | -1 | 0>>({});
 
   // Auto-scroll
   useEffect(() => {
@@ -152,7 +153,6 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                         {msg.parts[0].text}
                       </ReactMarkdown>
 
-                      {/* Display generated image */}
                       {generatedImages[index] && (
                         <div className="mt-3 mb-3">
                           <img
@@ -164,12 +164,12 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                       )}
                     </div>
 
-                    {/* Message actions - only for bot messages */}
                     {msg.role !== "user" && (
-                      <div className="flex items-center gap-2 mt-3 text-slate-400">
+                      <div className="flex items-center gap-2 mt-3">
+                        {/* Copy button */}
                         <button
                           onClick={() => copyMessageToClipboard(msg.parts[0].text, index)}
-                          className="flex items-center gap-1 text-xs hover:text-white transition-colors p-1 rounded hover:bg-slate-700/30"
+                          className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-slate-700/30"
                           aria-label="Copy message"
                         >
                           {copiedMessageIndex === index ? (
@@ -185,15 +185,38 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                           )}
                         </button>
 
+                        {/* Like / Dislike */}
                         <div className="flex items-center gap-1">
                           <button
-                            className="p-1 rounded hover:bg-slate-700/30 hover:text-white transition-colors"
+                            type="button"
+                            onClick={() =>
+                              setRatings(prev => ({
+                                ...prev,
+                                [index]: prev[index] === 1 ? 0 : 1,
+                              }))
+                            }
+                            className={`p-1 rounded transition-colors ${
+                              ratings[index] === 1
+                                ? "text-emerald-400"
+                                : "text-slate-400 hover:text-white hover:bg-slate-700/30"
+                            }`}
                             aria-label="Thumbs up"
                           >
                             <ThumbsUp className="h-3.5 w-3.5" />
                           </button>
                           <button
-                            className="p-1 rounded hover:bg-slate-700/30 hover:text-white transition-colors"
+                            type="button"
+                            onClick={() =>
+                              setRatings(prev => ({
+                                ...prev,
+                                [index]: prev[index] === -1 ? 0 : -1,
+                              }))
+                            }
+                            className={`p-1 rounded transition-colors ${
+                              ratings[index] === -1
+                                ? "text-red-400"
+                                : "text-slate-400 hover:text-white hover:bg-slate-700/30"
+                            }`}
                             aria-label="Thumbs down"
                           >
                             <ThumbsDown className="h-3.5 w-3.5" />
@@ -213,22 +236,12 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                     <Bot className="h-4 w-4 text-white" />
                   </div>
                 </div>
-
                 <div className="flex-1">
                   <div className="text-xs font-medium text-slate-300 mb-1">AninoDevAI</div>
                   <div className="flex space-x-1 mt-2">
-                    <div
-                      className="h-2 w-2 bg-slate-500 rounded-full animate-bounce"
-                      style={{ animationDelay: "0ms" }}
-                    ></div>
-                    <div
-                      className="h-2 w-2 bg-slate-500 rounded-full animate-bounce"
-                      style={{ animationDelay: "150ms" }}
-                    ></div>
-                    <div
-                      className="h-2 w-2 bg-slate-500 rounded-full animate-bounce"
-                      style={{ animationDelay: "300ms" }}
-                    ></div>
+                    <div className="h-2 w-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <div className="h-2 w-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <div className="h-2 w-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
                 </div>
               </div>
