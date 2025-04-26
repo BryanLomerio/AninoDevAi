@@ -13,7 +13,6 @@ interface ChatDisplayProps {
 
 const CodeBlock: React.FC<{ language: string; value: string }> = ({ language, value }) => {
   const [copied, setCopied] = useState(false);
-
   const handleCopy = () => {
     navigator.clipboard.writeText(value);
     setCopied(true);
@@ -21,40 +20,48 @@ const CodeBlock: React.FC<{ language: string; value: string }> = ({ language, va
   };
 
   return (
-    <div className="relative mt-3 mb-3 rounded-md overflow-hidden border border-slate-700">
-      <div className="flex items-center justify-between bg-slate-700 px-3 py-1.5 text-xs text-slate-300">
-        <span>{language}</span>
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-1 text-xs hover:text-white transition-colors"
-          aria-label="Copy code"
+    <div className="relative mt-3 mb-3 rounded-md border border-slate-700 max-w-full">
+      <div className="overflow-x-auto">
+        <div className="flex items-center justify-between bg-slate-700 px-3 py-1.5 text-xs text-slate-300">
+          <span>{language}</span>
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1 text-xs hover:text-white transition-colors"
+            aria-label="Copy code"
+          >
+            {copied ? (
+              <>
+                <Check className="h-3.5 w-3.5" />
+                <span>Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="h-3.5 w-3.5" />
+                <span>Copy</span>
+              </>
+            )}
+          </button>
+        </div>
+        <SyntaxHighlighter
+          language={language}
+          style={vscDarkPlus}
+          wrapLines={true}
+          wrapLongLines={true}
+          customStyle={{
+            margin: 0,
+            padding: "1rem",
+            fontSize: "0.875rem",
+            borderRadius: 0,
+            background: "#000",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            overflowX: "auto",
+          }}
+          lineProps={{ style: { wordBreak: "break-word", whiteSpace: "pre-wrap" } }}
         >
-          {copied ? (
-            <>
-              <Check className="h-3.5 w-3.5" />
-              <span>Copied!</span>
-            </>
-          ) : (
-            <>
-              <Copy className="h-3.5 w-3.5" />
-              <span>Copy</span>
-            </>
-          )}
-        </button>
+          {value}
+        </SyntaxHighlighter>
       </div>
-      <SyntaxHighlighter
-        language={language}
-        style={vscDarkPlus}
-        customStyle={{
-          margin: 0,
-          padding: "1rem",
-          fontSize: "0.875rem",
-          borderRadius: 0,
-          background: "#000000",
-        }}
-      >
-        {value}
-      </SyntaxHighlighter>
     </div>
   );
 };
@@ -64,7 +71,6 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
   const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
   const [ratings, setRatings] = useState<Record<number, 1 | -1 | 0>>({});
 
-  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -76,7 +82,7 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#1e1e1e] text-white overflow-hidden">
+    <div className="w-full h-full flex flex-col bg-[#1e1e1e] text-white">
       <div
         className="flex-1 w-full overflow-y-auto [&::-webkit-scrollbar]:w-2
         [&::-webkit-scrollbar-track]:bg-gray-100
@@ -99,14 +105,11 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                 <div className={`flex items-start gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className={`flex-shrink-0 ${msg.role === "user" ? "order-2" : "order-1"}`}>
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center
-                      ${msg.role === "user" ? "bg-purple-600" : "bg-emerald-600"}`}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        msg.role === "user" ? "bg-purple-600" : "bg-emerald-600"
+                      }`}
                     >
-                      {msg.role === "user" ? (
-                        <User className="h-4 w-4 text-white" />
-                      ) : (
-                        <Bot className="h-4 w-4 text-white" />
-                      )}
+                      {msg.role === "user" ? <User className="h-4 w-4 text-white" /> : <Bot className="h-4 w-4 text-white" />}
                     </div>
                   </div>
 
@@ -115,35 +118,31 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                       {msg.role === "user" ? "You" : "AninoDevAI"}
                     </div>
 
-                    <div className={`prose prose-sm prose-invert max-w-none ${msg.role === "user" ? "ml-auto" : ""}`}>
+                    <div className={`prose prose-sm prose-invert break-words max-w-full ${msg.role === "user" ? "ml-auto" : ""}`}>
                       <ReactMarkdown
                         components={{
-                          p: ({ node, children }) => <p className="text-sm mb-2">{children}</p>,
-                          a: ({ node, children, href }) => (
-                            <a
-                              href={href}
-                              className="text-blue-400 hover:underline"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
+                          p: ({ children }) => <p className="text-sm mb-2">{children}</p>,
+                          a: ({ children, href }) => (
+                            <a href={href} className="text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
                               {children}
                             </a>
                           ),
-                          ul: ({ node, children }) => <ul className="list-disc pl-5 mb-2 text-sm">{children}</ul>,
-                          ol: ({ node, children }) => <ol className="list-decimal pl-5 mb-2 text-sm">{children}</ol>,
-                          li: ({ node, children }) => <li className="mb-1">{children}</li>,
-                          h1: ({ node, children }) => <h1 className="text-lg font-bold mb-2 mt-3">{children}</h1>,
-                          h2: ({ node, children }) => <h2 className="text-md font-bold mb-2 mt-3">{children}</h2>,
-                          h3: ({ node, children }) => <h3 className="text-sm font-bold mb-2 mt-3">{children}</h3>,
-                          blockquote: ({ node, children }) => (
+                          ul: ({ children }) => <ul className="list-disc pl-5 mb-2 text-sm">{children}</ul>,
+                          ol: ({ children }) => <ol className="list-decimal pl-5 mb-2 text-sm">{children}</ol>,
+                          li: ({ children }) => <li className="mb-1">{children}</li>,
+                          h1: ({ children }) => <h1 className="text-lg font-bold mb-2 mt-3">{children}</h1>,
+                          h2: ({ children }) => <h2 className="text-md font-bold mb-2 mt-3">{children}</h2>,
+                          h3: ({ children }) => <h3 className="text-sm font-bold mb-2 mt-3">{children}</h3>,
+                          blockquote: ({ children }) => (
                             <blockquote className="border-l-2 border-slate-600 pl-3 italic my-2">{children}</blockquote>
                           ),
-                          code({ node, inline, className, children, ...props }) {
+                          code({ inline, className, children, ...props }) {
                             const match = /language-(\w+)/.exec(className || "");
-                            return !inline && match ? (
-                              <CodeBlock language={match[1]} value={String(children).replace(/\n$/, "")} />
-                            ) : (
-                              <code className="bg-slate-700 px-1 py-0.5 rounded text-xs" {...props}>
+                            if (!inline && match) {
+                              return <CodeBlock language={match[1]} value={String(children).replace(/\n$/, "")} />;
+                            }
+                            return (
+                              <code className="bg-slate-700 px-1 py-0.5 rounded text-xs break-words" {...props}>
                                 {children}
                               </code>
                             );
@@ -166,7 +165,6 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
 
                     {msg.role !== "user" && (
                       <div className="flex items-center gap-2 mt-3">
-                        {/* Copy button */}
                         <button
                           onClick={() => copyMessageToClipboard(msg.parts[0].text, index)}
                           className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-slate-700/30"
@@ -185,10 +183,8 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                           )}
                         </button>
 
-                        {/* Like / Dislike */}
                         <div className="flex items-center gap-1">
                           <button
-                            type="button"
                             onClick={() =>
                               setRatings(prev => ({
                                 ...prev,
@@ -200,12 +196,10 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                                 ? "text-emerald-400"
                                 : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                             }`}
-                            aria-label="Thumbs up"
                           >
                             <ThumbsUp className="h-3.5 w-3.5" />
                           </button>
                           <button
-                            type="button"
                             onClick={() =>
                               setRatings(prev => ({
                                 ...prev,
@@ -217,7 +211,6 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                                 ? "text-red-400"
                                 : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                             }`}
-                            aria-label="Thumbs down"
                           >
                             <ThumbsDown className="h-3.5 w-3.5" />
                           </button>
