@@ -118,7 +118,7 @@ const MessageInput = ({
             className={`rounded-full ${
               isImageRequest
                 ? "bg-purple-600 text-white hover:bg-purple-700"
-                : "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-purple-600 text-white hover:bg-purple-400"
             }`}
             disabled={loading || transcript.trim() === ""}
           >
