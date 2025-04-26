@@ -60,7 +60,7 @@ export default function Home() {
       className="w-full h-full object-contain transition-transform transform hover:scale-105"
     />
   </div>
-  <h1 className="text-3xl sm:text-4xl font-bold text-white">
+  <h1 className="text-3xl sm:text-2xl font-bold text-white">
     AninoDevAI
   </h1>
 </div>

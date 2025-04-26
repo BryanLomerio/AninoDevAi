@@ -1,4 +1,3 @@
-import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import type { Message } from "@/utils/aiHelpers"
 import ReactMarkdown from "react-markdown"
