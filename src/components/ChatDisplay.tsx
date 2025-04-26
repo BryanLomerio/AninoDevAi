@@ -1,14 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
-import type { Message } from "./utils/aiHelpers";
+import type { Message } from "../utils/aiHelpers";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Check, Copy, User, Bot, ThumbsUp, ThumbsDown } from "lucide-react";
+import ThinkingProcess from "./ThinkingProcess";
 
 interface ChatDisplayProps {
   messages: Message[];
   loading: boolean;
   generatedImages: Record<number, string>;
+  thinking: boolean;
+  thoughts: string[];
 }
 
 const CodeBlock: React.FC<{ language: string; value: string }> = ({ language, value }) => {
@@ -66,14 +69,14 @@ const CodeBlock: React.FC<{ language: string; value: string }> = ({ language, va
   );
 };
 
-const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedImages }) => {
+const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedImages, thinking, thoughts }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null);
   const [ratings, setRatings] = useState<Record<number, 1 | -1 | 0>>({});
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  }, [messages, loading, thinking, thoughts]);
 
   const copyMessageToClipboard = (text: string, index: number) => {
     navigator.clipboard.writeText(text);
@@ -221,6 +224,9 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                 </div>
               </div>
             ))}
+
+            {/* Thinking process display */}
+            <ThinkingProcess isVisible={thinking} thoughts={thoughts} />
 
             {loading && (
               <div className="flex items-start gap-3 mb-6 w-full">

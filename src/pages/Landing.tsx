@@ -153,7 +153,6 @@ export default function Home() {
         <footer className="text-center text-gray-500 text-sm mt-12">
           <p>© {new Date().getFullYear()} AninoDevAI. Built with React, And Tailwind CSS</p>
         </footer>
-
       </div>
     </div>
   );

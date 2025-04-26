@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react"
-import { toast } from "@/lib/use-toast"
+import { Toast } from "@/components/ui/toast"
+
 import ChatDisplay from "@/components/ChatDisplay"
 import MessageInput from "@/components/MessageInput"
 import SettingsPanel from "@/components/SettingsPanel"
 import { initSpeechRecognition } from "@/utils/speechRecognition"
 import { loadVapiSDK, createVapiCall } from "@/utils/vapiHelper"
-import { FaGithub } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link } from "react-router-dom"
 import {
   sendMessageToGemini,
   generateImageFromGemini,
@@ -19,6 +19,7 @@ import { stripMarkdown } from "@/utils/textProcessing"
 import { Settings } from "lucide-react"
 import { useIsMobile } from "@/lib/use-mobile"
 import Alogo from "@/assets/brain.png"
+import { generateThinkingProcess } from "@/utils/thinkingProcess"
 
 const stopSpeech = () => {
   if ("speechSynthesis" in window) {
@@ -34,6 +35,8 @@ const Home = () => {
   const [messages, setMessages] = useState<Message[]>([])
   const [vapiApiKey, setVapiApiKey] = useState("")
   const [loading, setLoading] = useState(false)
+  const [thinking, setThinking] = useState(false)
+  const [thoughts, setThoughts] = useState<string[]>([])
   const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null)
   const [shouldSpeak, setShouldSpeak] = useState(true)
   const [showSettings, setShowSettings] = useState(false)
@@ -42,6 +45,7 @@ const Home = () => {
 
   const vapiInstance = useRef<any>(null)
   const recognitionRef = useRef<any>(null)
+  const thinkingTimerRef = useRef<number | null>(null)
 
   // Speech recognition setup
   useEffect(() => {
@@ -58,7 +62,7 @@ const Home = () => {
           description: "Speech recognition error: " + error.error,
           variant: "destructive",
         })
-      },
+      }
     )
 
     if (!recognitionRef.current) {
@@ -71,6 +75,9 @@ const Home = () => {
 
     return () => {
       recognitionRef.current?.stop()
+      if (thinkingTimerRef.current) {
+        clearTimeout(thinkingTimerRef.current)
+      }
     }
   }, [])
 
@@ -92,7 +99,7 @@ const Home = () => {
     }
   }, [vapiApiKey])
 
-  // Controls
+  // Toggle mic
   const toggleListening = () => {
     if (isListening) {
       recognitionRef.current?.stop()
@@ -116,6 +123,35 @@ const Home = () => {
     setSelectedVoice(voice)
   }
 
+  // Show AI thinking process, returns Promise resolving after all thoughts displayed
+  const showThinkingProcess = (userPrompt: string): Promise<void> => {
+    setThinking(true)
+    setThoughts([])
+
+    return new Promise((resolve) => {
+      const steps = generateThinkingProcess(userPrompt)
+      const thoughtTexts = steps.map((s) => s.thought)
+      let idx = 0
+
+      const display = () => {
+        if (idx < thoughtTexts.length) {
+          setThoughts((prev) => [...prev, thoughtTexts[idx]])
+          idx++
+          thinkingTimerRef.current = window.setTimeout(display, 800)
+        } else {
+          thinkingTimerRef.current = window.setTimeout(() => {
+            setThinking(false)
+            setThoughts([])
+            resolve()
+          }, 1000)
+        }
+      }
+
+      display()
+    })
+  }
+
+  // Handle user send
   const handleSendMessage = async (isImageRequestFromButton = false) => {
     if (!transcript.trim()) return
 
@@ -123,105 +159,68 @@ const Home = () => {
       role: "user",
       parts: [{ text: transcript }],
     }
-
     setMessages((prev) => [...prev, userMessage])
     setTranscript("")
     setLoading(true)
 
-    try {
-      const isTextBasedImageRequest = isImageGenerationRequest(userMessage.parts[0].text)
-      const shouldGenerateImage = isImageRequestFromButton || isTextBasedImageRequest
+    // Wait for thinking to finish
+    await showThinkingProcess(userMessage.parts[0].text)
 
-      if (isTextBasedImageRequest && !isImageRequestFromButton) {
-        const fallbackMessage: Message = {
+    try {
+      const isTextImage = isImageGenerationRequest(userMessage.parts[0].text)
+      const shouldGenerateImage = isImageRequestFromButton || isTextImage
+
+      if (isTextImage && !isImageRequestFromButton) {
+        const fallback: Message = {
           role: "assistant",
           parts: [{ text: "Please activate image generation to generate an image like that." }],
         }
-        setMessages((prev) => [...prev, fallbackMessage])
-        if (shouldSpeak) {
-          speakWithBrowserTTS(fallbackMessage.parts[0].text, selectedVoice || undefined)
-        }
+        setMessages((prev) => [...prev, fallback])
+        if (shouldSpeak) speakWithBrowserTTS(fallback.parts[0].text, selectedVoice || undefined)
         setLoading(false)
         return
       }
 
       if (shouldGenerateImage) {
-        const imagePrompt = isImageRequestFromButton
+        const prompt = isImageRequestFromButton
           ? userMessage.parts[0].text
           : extractImagePrompt(userMessage.parts[0].text)
-        console.log("Generating image for prompt:", imagePrompt)
+        const { text, imageSrc } = await generateImageFromGemini(GEMINI_API_KEY, prompt)
+        const respText = text || `Here's the image I generated based on: "${prompt}"`
+        const assistantMsg: Message = { role: "assistant", parts: [{ text: respText }] }
+        setMessages((prev) => [...prev, assistantMsg])
 
-        try {
-          const { text, imageSrc } = await generateImageFromGemini(GEMINI_API_KEY, imagePrompt)
-          const responseText = text || `Here's the image I generated based on: "${imagePrompt}"`
-          const assistantMessage: Message = {
-            role: "assistant",
-            parts: [{ text: responseText }],
-          }
-
-          setMessages((prev) => [...prev, assistantMessage])
-
-          if (imageSrc) {
-            setGeneratedImages((prev) => ({
-              ...prev,
-              [messages.length + 1]: imageSrc,
-            }))
-            console.log("Image generated successfully")
-          } else {
-            console.warn("No image was generated, showing text response only.")
-          }
-
-          if (shouldSpeak) {
-            speakWithBrowserTTS(responseText, selectedVoice || undefined)
-          }
-        } catch (imageError) {
-          console.error("Image generation error:", imageError)
-          const fallbackMessage: Message = {
-            role: "assistant",
-            parts: [{
-              text: "I couldn't generate that image. This might be due to content policy restrictions or a technical issue. Let me try to answer with text instead.",
-            }],
-          }
-
-          setMessages((prev) => [...prev, fallbackMessage])
-
-          const { assistantMessage, responseText } = await sendMessageToGemini(GEMINI_API_KEY, messages, userMessage)
-          setMessages((prev) => [...prev, assistantMessage])
-
-          if (shouldSpeak) {
-            speakWithBrowserTTS(responseText, selectedVoice || undefined)
-          }
+        if (imageSrc) {
+          setGeneratedImages((prev) => ({ ...prev, [messages.length + 1]: imageSrc }))
         }
+
+        if (shouldSpeak) speakWithBrowserTTS(respText, selectedVoice || undefined)
       } else {
-        const { assistantMessage, responseText } = await sendMessageToGemini(GEMINI_API_KEY, messages, userMessage)
+        const { assistantMessage, responseText } = await sendMessageToGemini(
+          GEMINI_API_KEY,
+          messages,
+          userMessage
+        )
         setMessages((prev) => [...prev, assistantMessage])
 
         if (shouldSpeak) {
           if (vapiInstance.current && vapiApiKey) {
-            const cleanText = stripMarkdown(responseText)
-            const success = await createVapiCall(vapiInstance.current, cleanText)
-            if (!success) {
-              speakWithBrowserTTS(responseText, selectedVoice || undefined)
-            }
+            const clean = stripMarkdown(responseText)
+            const ok = await createVapiCall(vapiInstance.current, clean)
+            if (!ok) speakWithBrowserTTS(responseText, selectedVoice || undefined)
           } else {
             speakWithBrowserTTS(responseText, selectedVoice || undefined)
           }
         }
       }
-    } catch (error) {
-      console.error("Error processing message:", error)
-      toast({
-        title: "Error",
-        description: "Failed to process your request",
-        variant: "destructive",
-      })
-
-      // Fallback error message
-      const errorMessage: Message = {
+    } catch (err) {
+      console.error("Error processing message:", err)
+      toast({ title: "Error", description: "Failed to process your request", variant: "destructive" })
+      const errorMsg: Message = {
         role: "assistant",
         parts: [{ text: "I'm sorry, I encountered an error processing your request. Please try again." }],
       }
-      setMessages((prev) => [...prev, errorMessage])
+      setMessages((prev) => [...prev, errorMsg])
     } finally {
       setLoading(false)
     }
@@ -230,40 +229,26 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-[#1e1e1e] flex justify-center font-poppins">
       <div className="w-full max-w-4xl flex flex-col h-screen relative">
-        {/* Header - Fixed at top */}
+        {/* Header */}
         <div className="bg-[#1e1e1e] p-3 sm:p-4 flex justify-between items-center sticky top-0 z-20">
           <div className="text-lg text-gray-400 sm:text-xl font-medium flex items-center gap-2">
             <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-slate-800 flex items-center justify-center">
-              <img
-                src={Alogo || "/placeholder.svg"}
-                alt="AI Logo"
-                className="w-full h-full object-contain transition-transform transform hover:scale-105"
-              />
+              <img src={Alogo} alt="AI Logo" className="w-full h-full object-contain" />
             </div>
-              <Link to="/">
-                       <h1 className=" hover:text-white transition-colors">
-                         AninoDevAI
-                       </h1>
-                     </Link>
+            <Link to="/">
+              <h1 className="hover:text-white transition-colors">AninoDevAI</h1>
+            </Link>
           </div>
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="text-slate-400 hover:text-white p-1 rounded-full hover:bg-slate-800"
+            aria-label="Settings"
+          >
+            <Settings className="h-5 w-5" />
+          </button>
+        </div>
 
-          <div className="flex items-center gap-3">
-          {/*     <a href="https://github.com/BryanLomerio/AninoDevAi" target="_blank" className="text-slate-400 hover:text-white">
-                <FaGithub className="h-5 w-5" />
-              </a> */}
-
-              <button
-                onClick={() => setShowSettings(!showSettings)}
-                className="text-slate-400 hover:text-white transition-colors p-1 rounded-full hover:bg-slate-800"
-                aria-label="Settings"
-              >
-                <Settings className="h-5 w-5" />
-              </button>
-            </div>
-            </div>
-
-
-        {/* Settings Panel */}
+        {/* SettingsPanel */}
         <SettingsPanel
           isOpen={showSettings}
           onClose={() => setShowSettings(false)}
@@ -275,12 +260,18 @@ const Home = () => {
           onStopSpeech={stopSpeech}
         />
 
-        {/* Chat Display */}
+        {/* Chat */}
         <div className="flex-1 overflow-y-auto pb-32">
-          <ChatDisplay messages={messages} loading={loading} generatedImages={generatedImages} />
+          <ChatDisplay
+            messages={messages}
+            loading={loading}
+            generatedImages={generatedImages}
+            thinking={thinking}
+            thoughts={thoughts}
+          />
         </div>
 
-        {/* Input Area */}
+        {/* Input */}
         <div className="bg-[#272727] rounded-tl-md rounded-tr-md p-3 sm:p-4 fixed bottom-0 left-0 right-0 max-w-4xl mx-auto z-10">
           <MessageInput
             transcript={transcript}
@@ -290,19 +281,15 @@ const Home = () => {
             onToggleListening={toggleListening}
             onSendMessage={handleSendMessage}
           />
-
-          {/* Status indicator */}
           <div className="mt-2 flex justify-between items-center">
             <p className="text-xs sm:text-sm text-slate-400 flex items-center gap-2">
               {isListening ? (
                 <>
-                  <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-                  {isMobile ? "Listening" : "Listening..."}
+                  <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" /> Listening...
                 </>
               ) : (
                 <>
-                  <span className="inline-block h-2 w-2 rounded-full bg-slate-600"></span>
-                  {isMobile ? "Mic off" : "Microphone off"}
+                  <span className="inline-block h-2 w-2 rounded-full bg-slate-600" /> Microphone off
                 </>
               )}
             </p>

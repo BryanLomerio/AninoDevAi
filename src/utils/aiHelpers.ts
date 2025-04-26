@@ -1,49 +1,49 @@
-import { GoogleGenAI } from "@google/genai"
+import { GoogleGenAI } from "@google/genai";
 
 export const speakWithBrowserTTS = (text: string, voice?: SpeechSynthesisVoice) => {
   if ("speechSynthesis" in window) {
     // Cancel any ongoing speech
-    window.speechSynthesis.cancel()
+    window.speechSynthesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(text)
+    const utterance = new SpeechSynthesisUtterance(text);
 
     utterance.onerror = (event) => {
-      console.error("Speech synthesis error:", event)
-    }
+      console.error("Speech synthesis error:", event);
+    };
 
     // Force get voices for mobile
-    const voices = window.speechSynthesis.getVoices()
+    const voices = window.speechSynthesis.getVoices();
 
     if (voice && voices.includes(voice)) {
-      utterance.voice = voice
+      utterance.voice = voice;
     } else {
       const defaultVoice =
         voices.find(
           (v) =>
             v.name.toLowerCase().includes("male") ||
             /david|mark|fred|alex|paul|zarvox|bruce/.test(v.name.toLowerCase())
-        ) || voices[0]
-      utterance.voice = defaultVoice
+        ) || voices[0];
+      utterance.voice = defaultVoice;
     }
 
-    utterance.rate = 1.2
-    utterance.pitch = 1
-    utterance.volume = 3
+    utterance.rate = 1.2;
+    utterance.pitch = 1;
+    utterance.volume = 3;
 
     // delay for mobile
     setTimeout(() => {
-      window.speechSynthesis.speak(utterance)
-    }, 50)
+      window.speechSynthesis.speak(utterance);
+    }, 50);
   }
-}
+};
 
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/models"
-const MODEL_NAME = "gemini-2.0-flash"
+const API_URL = "https://generativelanguage.googleapis.com/v1beta/models";
+const MODEL_NAME = "gemini-2.0-flash";
 
 export type Message = {
-  role: "user" | "assistant"
-  parts: { text: string }[]
-}
+  role: "user" | "assistant";
+  parts: { text: string }[];
+};
 
 function normalizeInput(text: string): string {
   return text
@@ -51,27 +51,27 @@ function normalizeInput(text: string): string {
     .replace(/[\u2018\u2019''"]/g, "")
     .replace(/[^a-zA-Z0-9\s\u00C0-\u024F\u1E00-\u1EFF]/g, "")
     .replace(/\s+/g, " ")
-    .trim()
+    .trim();
 }
 
 export const sendMessageToGemini = async (
   apiKey: string,
   messages: Message[],
-  userMessage: Message,
+  userMessage: Message
 ): Promise<{ assistantMessage: Message; responseText: string }> => {
-  const incomingRaw = userMessage.parts[0].text.trim()
-  const incoming = incomingRaw.toLowerCase()
+  const incomingRaw = userMessage.parts[0].text.trim();
+  const incoming = incomingRaw.toLowerCase();
 
   if (incoming === "url") {
-    const url = "wss://app.evoxcharge.ph:8040/"
+    const url = "wss://app.evoxcharge.ph:8040/";
     const assistantMessage: Message = {
       role: "assistant",
       parts: [{ text: url }],
-    }
-    return { assistantMessage, responseText: url }
+    };
+    return { assistantMessage, responseText: url };
   }
 
-  const cleaned = normalizeInput(userMessage.parts[0].text)
+  const cleaned = normalizeInput(userMessage.parts[0].text);
 
   // Handle EVOxCharge EV charger list request
   if (cleaned.includes("evoxcharge stations") || cleaned.includes("list of ev chargers of evoxcharge")) {
@@ -105,8 +105,8 @@ export const sendMessageToGemini = async (
     const assistantMessage: Message = {
       role: "assistant",
       parts: [{ text: tableText }],
-    }
-    return { assistantMessage, responseText: tableText }
+    };
+    return { assistantMessage, responseText: tableText };
   }
 
   const creatorKeywords = [
@@ -125,16 +125,16 @@ export const sendMessageToGemini = async (
     "sino gumawa sa yo",
     "gumawa ng aninodev ai",
     "gumawa ng ai",
-  ]
+  ];
 
   if (creatorKeywords.some((q) => cleaned.includes(q))) {
-    const customText = "I was created by Bryan Lomerio, a fullstack developer from the Philippines."
+    const customText = "I was created by Bryan Lomerio, a fullstack developer from the Philippines.";
     const assistantMessage: Message = {
       role: "assistant",
       parts: [{ text: customText }],
-    }
+    };
 
-    return { assistantMessage, responseText: customText }
+    return { assistantMessage, responseText: customText };
   }
 
   const personaMessage: Message = {
@@ -152,9 +152,9 @@ export const sendMessageToGemini = async (
         `.trim(),
       },
     ],
-  }
+  };
 
-  const contents = [personaMessage, ...messages, userMessage]
+  const contents = [personaMessage, ...messages, userMessage];
 
   const response = await fetch(`${API_URL}/${MODEL_NAME}:generateContent?key=${apiKey}`, {
     method: "POST",
@@ -166,25 +166,25 @@ export const sendMessageToGemini = async (
         maxOutputTokens: 10000,
       },
     }),
-  })
+  });
 
-  const data = await response.json()
+  const data = await response.json();
   if (data.error) {
-    throw new Error(data.error.message || "Failed to get response from Gemini")
+    throw new Error(data.error.message || "Failed to get response from Gemini");
   }
 
-  const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate a response"
+  const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate a response";
 
   const assistantMessage: Message = {
     role: "assistant",
     parts: [{ text: responseText }],
-  }
+  };
 
-  return { assistantMessage, responseText }
-}
+  return { assistantMessage, responseText };
+};
 
 export const isImageGenerationRequest = (text: string): boolean => {
-  const normalized = text.toLowerCase().trim()
+  const normalized = text.toLowerCase().trim();
 
   const imageRequestPatterns = [
     // Generate patterns
@@ -257,13 +257,13 @@ export const isImageGenerationRequest = (text: string): boolean => {
     "can you generate",
     "can you make",
     "can you draw",
-  ]
+  ];
 
-  return imageRequestPatterns.some((pattern) => normalized.includes(pattern))
-}
+  return imageRequestPatterns.some((pattern) => normalized.includes(pattern));
+};
 
 export const extractImagePrompt = (text: string): string => {
-  const normalized = text.toLowerCase().trim()
+  const normalized = text.toLowerCase().trim();
 
   const prefixes = [
     // Generate patterns
@@ -336,16 +336,16 @@ export const extractImagePrompt = (text: string): string => {
     "can you generate an image of",
     "can you make an image of",
     "can you draw",
-  ]
+  ];
 
   for (const prefix of prefixes) {
     if (normalized.includes(prefix)) {
-      return text.substring(text.toLowerCase().indexOf(prefix) + prefix.length).trim()
+      return text.substring(text.toLowerCase().indexOf(prefix) + prefix.length).trim();
     }
   }
 
-  return text
-}
+  return text;
+};
 
 export const generateImageFromGemini = async (apiKey: string, prompt: string): Promise<{ text?: string; imageSrc?: string }> => {
   try {
@@ -404,4 +404,4 @@ export const generateImageFromGemini = async (apiKey: string, prompt: string): P
       imageSrc: undefined,
     };
   }
-}
+};
