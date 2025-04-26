@@ -72,7 +72,7 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <Button variant="outline" size="sm" className="text-gray-500 bg-[#1e1e1e] border-gray-700 hover:bg-[#2A2A2A] hover:border-gray-500">
+              <Button variant="outline" size="sm" className="text-gray-500 bg-[#1e1e1e] hover:text-white border-gray-700 hover:bg-[#2A2A2A] hover:border-gray-500">
                 <Github className="h-4 w-4 mr-2" />
                 <span>GitHub</span>
               </Button>
@@ -124,7 +124,7 @@ export default function Home() {
 
                   </p>
                   <Link to="/home">
-                    <Button size="lg" className="bg-[#1e1e1e] hover:bg-gray-800 text-white shadow-lg">
+                    <Button size="lg" className="bg-[#1e1e1e] hover:bg-green-800 text-white shadow-lg">
                       <MessageSquare className="h-4 w-4 mr-2" />
                       Start Chatting
                     </Button>
