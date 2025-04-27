@@ -11,7 +11,6 @@ export const speakWithBrowserTTS = (text: string, voice?: SpeechSynthesisVoice) 
       console.error("Speech synthesis error:", event);
     };
 
-    // Force get voices for mobile
     const voices = window.speechSynthesis.getVoices();
 
     if (voice && voices.includes(voice)) {
@@ -137,6 +136,10 @@ export const sendMessageToGemini = async (
     return { assistantMessage, responseText: customText };
   }
 
+  // Analyze the query to determine the appropriate response approach
+  const queryAnalysis = analyzeQuery(userMessage.parts[0].text, messages);
+
+  // Enhanced system prompt with critical thinking instructions
   const personaMessage: Message = {
     role: "user",
     parts: [
@@ -148,11 +151,57 @@ export const sendMessageToGemini = async (
 
         You don't need to mention your name in every response. Speak like a natural AI assistant.
 
+        IMPORTANT INSTRUCTIONS FOR CRITICAL THINKING:
+        - ${queryAnalysis.responseApproach}
+        - When answering questions, first consider multiple perspectives and approaches
+        - Break down complex problems into smaller components
+        - Provide evidence and reasoning for your statements
+        - Consider limitations and uncertainties in your knowledge
+        - For technical questions, provide accurate, detailed explanations with examples
+        - For conceptual questions, use analogies and clear explanations
+        - For problem-solving, provide step-by-step solutions with explanations
+        - Acknowledge when a topic has multiple valid viewpoints
+        - Complexity level: ${queryAnalysis.complexity}
+
         Respond helpfully, clearly, and concisely.
         `.trim(),
       },
     ],
   };
+
+  // Add context-specific instructions based on query analysis
+  if (queryAnalysis.domains.includes("Software Development") ||
+      queryAnalysis.domains.includes("Programming")) {
+    personaMessage.parts[0].text += `
+      When discussing code or programming:
+      - Provide working, well-structured code examples
+      - Explain the reasoning behind implementation choices
+      - Consider performance, readability, and maintainability
+      - Highlight potential edge cases or limitations
+      - Use modern best practices and patterns
+    `;
+  }
+
+  if (queryAnalysis.domains.includes("Artificial Intelligence")) {
+    personaMessage.parts[0].text += `
+      When discussing AI topics:
+      - Explain concepts in accessible terms while maintaining technical accuracy
+      - Acknowledge both capabilities and limitations of AI technologies
+      - Consider ethical implications where relevant
+      - Distinguish between established facts and areas of ongoing research
+    `;
+  }
+
+  if (queryAnalysis.intent === "Comparison") {
+    personaMessage.parts[0].text += `
+      For this comparison:
+      - Provide a structured analysis of similarities and differences
+      - Consider multiple dimensions of comparison
+      - Highlight strengths and weaknesses of each option
+      - Provide context for when each option might be preferred
+      - Avoid oversimplification of complex differences
+    `;
+  }
 
   const contents = [personaMessage, ...messages, userMessage];
 
@@ -182,6 +231,100 @@ export const sendMessageToGemini = async (
 
   return { assistantMessage, responseText };
 };
+
+// New function to analyze the query and determine the best response approach
+function analyzeQuery(query: string, previousMessages: Message[]) {
+  const lowercaseQuery = query.toLowerCase();
+
+  // Extract topics
+  const topics = [];
+
+  if (lowercaseQuery.includes("code") || lowercaseQuery.includes("programming") ||
+      lowercaseQuery.includes("javascript") || lowercaseQuery.includes("typescript") ||
+      lowercaseQuery.includes("react") || lowercaseQuery.includes("python")) {
+    topics.push("programming");
+  }
+
+  if (lowercaseQuery.includes("ai") || lowercaseQuery.includes("machine learning") ||
+      lowercaseQuery.includes("artificial intelligence") || lowercaseQuery.includes("model")) {
+    topics.push("artificial intelligence");
+  }
+
+  // Determine domains
+  const domains = [];
+
+  if (topics.includes("programming")) {
+    if (lowercaseQuery.includes("architecture") || lowercaseQuery.includes("design pattern")) {
+      domains.push("Software Architecture");
+    } else if (lowercaseQuery.includes("algorithm") || lowercaseQuery.includes("data structure")) {
+      domains.push("Algorithms & Data Structures");
+    } else {
+      domains.push("Software Development");
+    }
+  }
+
+  if (topics.includes("artificial intelligence")) {
+    if (lowercaseQuery.includes("ethics") || lowercaseQuery.includes("bias")) {
+      domains.push("AI Ethics");
+    } else {
+      domains.push("Artificial Intelligence");
+    }
+  }
+
+  // Determine intent
+  let intent = "General Request";
+
+  if (lowercaseQuery.includes("?") || lowercaseQuery.startsWith("what") ||
+      lowercaseQuery.startsWith("how") || lowercaseQuery.startsWith("why")) {
+    intent = "Information Seeking";
+  } else if (lowercaseQuery.startsWith("compare") || lowercaseQuery.includes("vs") ||
+             lowercaseQuery.includes("versus") || lowercaseQuery.includes("differences between")) {
+    intent = "Comparison";
+  } else if (lowercaseQuery.startsWith("fix") || lowercaseQuery.startsWith("debug") ||
+             lowercaseQuery.includes("error") || lowercaseQuery.includes("problem")) {
+    intent = "Problem Solving";
+  }
+
+  // Determine complexity
+  const wordCount = query.split(/\s+/).length;
+  const technicalTerms = [
+    "algorithm", "implementation", "architecture", "framework", "optimization",
+    "complexity", "paradigm", "abstraction", "recursion", "polymorphism"
+  ];
+  const hasTechnicalTerms = technicalTerms.some(term => lowercaseQuery.includes(term));
+
+  let complexity = "Medium";
+  if (wordCount > 30 || hasTechnicalTerms) {
+    complexity = "High";
+  } else if (wordCount < 10 && !hasTechnicalTerms) {
+    complexity = "Low";
+  }
+
+  // Determine response approach
+  let responseApproach = "Provide a helpful, conversational response that addresses the user's needs";
+
+  if (domains.includes("Software Development") || domains.includes("Algorithms & Data Structures")) {
+    responseApproach = "Provide a structured, technical response with practical examples and explanations";
+  } else if (domains.includes("Artificial Intelligence")) {
+    responseApproach = "Provide an informative explanation balancing technical accuracy with accessibility";
+  } else if (intent === "Comparison") {
+    responseApproach = "Provide a structured analysis of similarities, differences, and appropriate use cases";
+  } else if (intent === "Problem Solving") {
+    responseApproach = "Provide a structured solution with explanations of the underlying issues and step-by-step guidance";
+  }
+
+  // Consider conversation context
+  const hasContext = previousMessages.length > 0;
+
+  return {
+    topics,
+    domains,
+    intent,
+    complexity,
+    responseApproach,
+    hasContext
+  };
+}
 
 export const isImageGenerationRequest = (text: string): boolean => {
   const normalized = text.toLowerCase().trim();
