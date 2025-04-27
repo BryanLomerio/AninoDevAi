@@ -403,6 +403,7 @@ function evaluateComplexity(prompt: string, topics: string[]): string {
 
   const hasNuanceIndicators = nuanceIndicators.some((indicator) => prompt.includes(indicator))
 
+
   if ((wordCount > 30 && (multipleTopics || hasTechnicalTerms)) || (hasTechnicalTerms && hasNuanceIndicators)) {
     return "High"
   } else if ((wordCount > 15 && (multipleTopics || hasTechnicalTerms)) || hasNuanceIndicators) {

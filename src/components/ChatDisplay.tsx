@@ -84,7 +84,7 @@ const TypingAnimation: React.FC<{ text: string }> = ({ text }) => {
       const timeout = setTimeout(() => {
         setDisplayedText((prev) => prev + text[currentIndex])
         setCurrentIndex((prev) => prev + 1)
-      }, 15) // Speed of typing animation
+      }, 20)
 
       return () => clearTimeout(timeout)
     }
@@ -137,11 +137,14 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({
 
   return (
     <div className="w-full h-full flex flex-col bg-[#1e1e1e] text-white">
-      <div
-        className="flex-1 w-full overflow-y-auto [&::-webkit-scrollbar]:w-2
-        [&::-webkit-scrollbar-track]:bg-gray-100
-        [&::-webkit-scrollbar-thumb]:bg-purple-300 px-4 md:px-2 py-2"
-      >
+    <div
+  className="flex-1 w-full overflow-y-auto
+  scrollbar-hide md:[&::-webkit-scrollbar]:w-2
+  md:[&::-webkit-scrollbar-track]:bg-gray-100
+  md:[&::-webkit-scrollbar-thumb]:bg-purple-300
+  px-4 md:px-2 py-2"
+>
+
         {messages.length === 0 && !loading && !thinking ? (
           <div className="h-full flex flex-col items-center justify-center text-slate-400">
             <Bot className="h-12 w-12 mb-3 opacity-50" />
@@ -289,7 +292,6 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({
               </div>
             ))}
 
-            {/* Enhanced thinking/loading indicator with ChatGPT-like effects */}
             {(thinking || loading) && (
               <div className="flex items-start gap-3 mb-6 w-full">
                 <div className="flex-shrink-0">
