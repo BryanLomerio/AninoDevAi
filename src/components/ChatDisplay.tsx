@@ -93,7 +93,7 @@ const TypingAnimation: React.FC<{ text: string }> = ({ text }) => {
   return (
     <div className="text-sm text-slate-300 mb-2">
       {displayedText}
-      <span className="inline-block w-1 h-4 ml-0.5 bg-purple-400 animate-pulse"></span>
+     {/*  <span className="inline-block w-1 h-4 ml-0.5 bg-purple-400 animate-pulse"></span> */}
     </div>
   )
 }
