@@ -61,15 +61,6 @@ export const sendMessageToGemini = async (
   const incomingRaw = userMessage.parts[0].text.trim();
   const incoming = incomingRaw.toLowerCase();
 
- /*  if (incoming === "url") {
-    const url = "wss://app.evoxcharge.ph:8040/";
-    const assistantMessage: Message = {
-      role: "assistant",
-      parts: [{ text: url }],
-    };
-    return { assistantMessage, responseText: url };
-  }
- */
   const cleaned = normalizeInput(userMessage.parts[0].text);
 
   // Handle EVOxCharge EV charger list request
