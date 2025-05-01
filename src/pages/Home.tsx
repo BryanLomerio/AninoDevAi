@@ -38,7 +38,7 @@ const Home = () => {
   const [thinking, setThinking] = useState(false)
   const [thoughts, setThoughts] = useState<string[]>([])
   const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null)
-  const [shouldSpeak, setShouldSpeak] = useState(true)
+  const [shouldSpeak, setShouldSpeak] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({})
   const isMobile = useIsMobile()
