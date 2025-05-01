@@ -138,11 +138,7 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({
   return (
     <div className="w-full h-full flex flex-col bg-[#1e1e1e] text-white">
     <div
-  className="flex-1 w-full overflow-y-auto
-  scrollbar-hide md:[&::-webkit-scrollbar]:w-2
-  md:[&::-webkit-scrollbar-track]:bg-gray-100
-  md:[&::-webkit-scrollbar-thumb]:bg-purple-300
-  px-4 md:px-2 py-2"
+  className="flex-1 w-full overflow-y-auto"
 >
 
         {messages.length === 0 && !loading && !thinking ? (
