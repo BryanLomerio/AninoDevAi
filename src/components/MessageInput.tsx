@@ -105,10 +105,10 @@ const MessageInput = ({
           <Button
             onClick={() => onSendMessage(isImageRequest)}
             size="icon"
-            className="h-8 w-8 rounded-full bg-purple-600 text-white hover:bg-purple-700"
+            className="h-6 w-6 rounded-full bg-purple-600 text-white hover:bg-purple-700"
             disabled={loading || transcript.trim() === ""}
           >
-            <FaArrowUp className="h-4 w-4" />
+            <FaArrowUp className="h-2 w-2" />
           </Button>
         </div>
       </div>
