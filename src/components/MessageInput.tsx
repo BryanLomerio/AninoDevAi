@@ -1,6 +1,8 @@
+
 import { Mic, MicOff, Send, ImageIcon, Lightbulb } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useRef, useEffect } from "react"
+import { FaArrowUp } from "react-icons/fa";
 
 interface MessageInputProps {
   transcript: string
@@ -46,7 +48,7 @@ const MessageInput = ({
           value={transcript}
           onChange={(e) => onTranscriptChange(e.target.value)}
           placeholder={isImageRequest ? "Describe the image you want..." : "Message AninoDevAI..."}
-          className={`w-full min-h-[48px] max-h-[200px] bg-[#303030] text-gray-200 rounded-2xl resize-none p-3 pr-[120px] border ${
+          className={`w-full min-h-[48px] max-h-[200px] bg-[#303030] text-gray-200 rounded-2xl resize-none p-3 pb-12 border ${
             isImageRequest ? "border-purple-400" : "border-neutral-400"
           } shadow-sm overflow-hidden`}
           rows={1}
@@ -60,7 +62,7 @@ const MessageInput = ({
           }}
         />
 
-        <div className="absolute right-2 top-[50%] -translate-y-1/2 flex items-center gap-1">
+        <div className="absolute bottom-2 right-2 flex items-center gap-1">
           <Button
             onClick={onToggleThinkingMode}
             variant="ghost"
@@ -106,7 +108,7 @@ const MessageInput = ({
             className="h-8 w-8 rounded-full bg-purple-600 text-white hover:bg-purple-700"
             disabled={loading || transcript.trim() === ""}
           >
-            <Send className="h-4 w-4" />
+            <FaArrowUp className="h-4 w-4" />
           </Button>
         </div>
       </div>
