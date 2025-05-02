@@ -1,6 +1,4 @@
 import { useState, useRef, useEffect } from "react"
-import { Toast } from "@/components/ui/toast"
-
 import ChatDisplay from "@/components/ChatDisplay"
 import MessageInput from "@/components/MessageInput"
 import SettingsPanel from "@/components/SettingsPanel"
@@ -42,6 +40,7 @@ const Home = () => {
   const [showSettings, setShowSettings] = useState(false)
   const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({})
   const isMobile = useIsMobile()
+  const [thinkingMode, setThinkingMode] = useState(false)
 
   const vapiInstance = useRef<any>(null)
   const recognitionRef = useRef<any>(null)
@@ -62,7 +61,7 @@ const Home = () => {
           description: "Speech recognition error: " + error.error,
           variant: "destructive",
         })
-      }
+      },
     )
 
     if (!recognitionRef.current) {
@@ -123,8 +122,12 @@ const Home = () => {
     setSelectedVoice(voice)
   }
 
-  // Show AI thinking process, returns Promise resolving after all thoughts displayed
+  // Show AI thinking process
   const showThinkingProcess = (userPrompt: string): Promise<void> => {
+    if (!thinkingMode) {
+      return Promise.resolve() // Skip
+    }
+
     setThinking(true)
     setThoughts([])
 
@@ -196,11 +199,7 @@ const Home = () => {
 
         if (shouldSpeak) speakWithBrowserTTS(respText, selectedVoice || undefined)
       } else {
-        const { assistantMessage, responseText } = await sendMessageToGemini(
-          GEMINI_API_KEY,
-          messages,
-          userMessage
-        )
+        const { assistantMessage, responseText } = await sendMessageToGemini(GEMINI_API_KEY, messages, userMessage)
         setMessages((prev) => [...prev, assistantMessage])
 
         if (shouldSpeak) {
@@ -233,7 +232,7 @@ const Home = () => {
         <div className="bg-[#1e1e1e] p-3 sm:p-4 flex justify-between items-center sticky top-0 z-20">
           <div className="text-lg text-gray-400 sm:text-xl font-medium flex items-center gap-2">
             <div className="h-6 w-6 sm:h-7 sm:w-7 rounded-full bg-slate-800 flex items-center justify-center">
-              <img src={Alogo} alt="AI Logo" className="w-full h-full object-contain" />
+              <img src={Alogo || "/placeholder.svg"} alt="AI Logo" className="w-full h-full object-contain" />
             </div>
             <Link to="/">
               <h1 className="hover:text-white transition-colors">AninoDevAI</h1>
@@ -277,9 +276,11 @@ const Home = () => {
             transcript={transcript}
             isListening={isListening}
             loading={loading}
+            thinkingMode={thinkingMode}
             onTranscriptChange={setTranscript}
             onToggleListening={toggleListening}
             onSendMessage={handleSendMessage}
+            onToggleThinkingMode={() => setThinkingMode(!thinkingMode)}
           />
           <div className="mt-2 flex justify-between items-center">
             <p className="text-xs sm:text-sm text-slate-400 flex items-center gap-2">
@@ -293,6 +294,7 @@ const Home = () => {
                 </>
               )}
             </p>
+            {thinkingMode && <p className="text-xs text-yellow-400">Critical thinking mode on</p>}
           </div>
         </div>
       </div>
