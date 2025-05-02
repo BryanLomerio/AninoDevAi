@@ -46,7 +46,7 @@ const MessageInput = ({
           value={transcript}
           onChange={(e) => onTranscriptChange(e.target.value)}
           placeholder={isImageRequest ? "Describe the image you want..." : "Message AninoDevAI..."}
-          className={`w-full min-h-[48px] max-h-[200px] rounded-2xl resize-none p-3 pr-[120px] border ${
+          className={`w-full min-h-[48px] max-h-[200px] bg-[#303030] text-gray-200 rounded-2xl resize-none p-3 pr-[120px] border ${
             isImageRequest ? "border-purple-400" : "border-neutral-400"
           } shadow-sm overflow-hidden`}
           rows={1}
