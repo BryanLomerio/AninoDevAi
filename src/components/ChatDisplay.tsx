@@ -128,9 +128,18 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
         {messages.length === 0 && !loading && !thinking ? (
           <div className="h-full flex flex-col items-center justify-center text-slate-400 px-4">
             <Bot className="h-12 w-12 mb-3 opacity-50" />
-            <p className="text-sm text-center">Start a conversation with AninoDevAI</p>
-            <p className="text-sm text-center">You can turn off the AI voice in the settings.</p>
-            <p className="text-sm mt-2 text-center">Click the image icon to generate an image.</p>
+            <h3 className="text-lg font-medium text-white mb-2">Start a conversation with AninoDevAI</h3>
+            <p className="text-sm text-center text-slate-400 max-w-md">Ask questions, generate code, create images, or just chat.</p>
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md w-full">
+              <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 hover:bg-slate-800 transition-colors">
+                <p className="text-sm font-medium text-white mb-1">Turn off AI voice</p>
+                <p className="text-xs text-slate-400">Adjust settings in the menu</p>
+              </div>
+              <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 hover:bg-slate-800 transition-colors">
+                <p className="text-sm font-medium text-white mb-1">Generate images</p>
+                <p className="text-xs text-slate-400">Click the image icon to create</p>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="w-full px-4 sm:px-6 md:max-w-3xl md:mx-auto">
