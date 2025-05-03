@@ -5,6 +5,8 @@ import SettingsPanel from "@/components/SettingsPanel"
 import { initSpeechRecognition } from "@/utils/speechRecognition"
 import { loadVapiSDK, createVapiCall } from "@/utils/vapiHelper"
 import { Link } from "react-router-dom"
+import { toast } from "react-hot-toast"
+
 import {
   sendMessageToGemini,
   generateImageFromGemini,
@@ -56,20 +58,12 @@ const Home = () => {
       (error) => {
         console.error("Speech recognition error", error)
         setIsListening(false)
-        toast({
-          title: "Error",
-          description: "Speech recognition error: " + error.error,
-          variant: "destructive",
-        })
-      },
+        toast.error("Speech recognition error: " + error.error)
+      }
     )
 
     if (!recognitionRef.current) {
-      toast({
-        title: "Browser not supported",
-        description: "Your browser doesn't support speech recognition",
-        variant: "destructive",
-      })
+      toast.error("Your browser doesn't support speech recognition")
     }
 
     return () => {
@@ -89,11 +83,7 @@ const Home = () => {
         })
         .catch((err: any) => {
           console.error(err)
-          toast({
-            title: "Error",
-            description: err.message,
-            variant: "destructive",
-          })
+          toast.error(err.message)
         })
     }
   }, [vapiApiKey])
@@ -105,11 +95,7 @@ const Home = () => {
       setIsListening(false)
     } else {
       if (!recognitionRef.current) {
-        toast({
-          title: "Speech recognition not available",
-          description: "Your browser doesn't support speech recognition",
-          variant: "destructive",
-        })
+        toast.error("Your browser doesn't support speech recognition")
         return
       }
       recognitionRef.current.start()
@@ -125,7 +111,7 @@ const Home = () => {
   // Show AI thinking process
   const showThinkingProcess = (userPrompt: string): Promise<void> => {
     if (!thinkingMode) {
-      return Promise.resolve() // Skip
+      return Promise.resolve()
     }
 
     setThinking(true)
@@ -199,7 +185,11 @@ const Home = () => {
 
         if (shouldSpeak) speakWithBrowserTTS(respText, selectedVoice || undefined)
       } else {
-        const { assistantMessage, responseText } = await sendMessageToGemini(GEMINI_API_KEY, messages, userMessage)
+        const { assistantMessage, responseText } = await sendMessageToGemini(
+          GEMINI_API_KEY,
+          messages,
+          userMessage
+        )
         setMessages((prev) => [...prev, assistantMessage])
 
         if (shouldSpeak) {
@@ -214,7 +204,7 @@ const Home = () => {
       }
     } catch (err) {
       console.error("Error processing message:", err)
-      toast({ title: "Error", description: "Failed to process your request", variant: "destructive" })
+      toast.error("Failed to process your request")
       const errorMsg: Message = {
         role: "assistant",
         parts: [{ text: "I'm sorry, I encountered an error processing your request. Please try again." }],
