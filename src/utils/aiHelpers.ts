@@ -1,41 +1,38 @@
 import { GoogleGenAI } from "@google/genai";
+import { stripMarkdown } from "./textProcessing";
 
 export const speakWithBrowserTTS = (text: string, voice?: SpeechSynthesisVoice) => {
-  if ("speechSynthesis" in window) {
-    // Cancel any ongoing speech
-    window.speechSynthesis.cancel();
+  if (!("speechSynthesis" in window)) return;
+  const cleanText = stripMarkdown(text);
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(cleanText);
 
-    const utterance = new SpeechSynthesisUtterance(text);
+  utterance.onerror = (event) => {
+    console.error("Speech synthesis error:", event);
+  };
 
-    utterance.onerror = (event) => {
-      console.error("Speech synthesis error:", event);
-    };
-
-    const voices = window.speechSynthesis.getVoices();
-
-    if (voice && voices.includes(voice)) {
-      utterance.voice = voice;
-    } else {
-      const defaultVoice =
-        voices.find(
-          (v) =>
-            v.name.toLowerCase().includes("male") ||
-            /david|mark|fred|alex|paul|zarvox|bruce/.test(v.name.toLowerCase())
-        ) || voices[0];
-      utterance.voice = defaultVoice;
-    }
-
-    utterance.rate = 1.2;
-    utterance.pitch = 1;
-    utterance.volume = 3;
-
-    // delay for mobile
-    setTimeout(() => {
-      window.speechSynthesis.speak(utterance);
-    }, 50);
+  const voices = window.speechSynthesis.getVoices();
+  if (voice && voices.includes(voice)) {
+    utterance.voice = voice;
+  } else {
+    const defaultVoice =
+      voices.find(
+        (v) =>
+          v.name.toLowerCase().includes("male") ||
+          /david|mark|fred|alex|paul|zarvox|bruce/.test(v.name.toLowerCase())
+      ) || voices[0];
+    utterance.voice = defaultVoice;
   }
-};
 
+  // 5) Tweak prosody
+  utterance.rate = 1.2;
+  utterance.pitch = 1;
+  utterance.volume = 3;
+
+  setTimeout(() => {
+    window.speechSynthesis.speak(utterance);
+  }, 50);
+};
 const API_URL = "https://generativelanguage.googleapis.com/v1beta/models";
 const MODEL_NAME = "gemini-2.0-flash";
 
