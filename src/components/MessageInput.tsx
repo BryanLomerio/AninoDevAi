@@ -113,10 +113,10 @@ const MessageInput = ({
         </div>
       </div>
 
-      {(isImageRequest || thinkingMode) && (
+      {(isImageRequest) && (
         <div className="mt-1 text-xs flex gap-2">
           {isImageRequest && <span className="text-purple-400">Image generation active</span>}
-          {thinkingMode && <span className="text-yellow-400">Critical thinking active</span>}
+         {/*  {thinkingMode && <span className="text-yellow-400">Critical thinking active</span>} */}
         </div>
       )}
     </div>

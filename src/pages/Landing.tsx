@@ -124,7 +124,7 @@ export default function Home() {
 
                   </p>
                   <Link to="/home">
-                    <Button size="lg" className="bg-[#1e1e1e] hover:bg-green-800 text-white shadow-lg">
+                    <Button size="lg" className="bg-green-800 hover:bg-green-500 text-white shadow-lg">
                       <MessageSquare className="h-4 w-4 mr-2" />
                       Start Chatting
                     </Button>

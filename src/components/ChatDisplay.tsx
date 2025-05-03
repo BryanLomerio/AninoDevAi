@@ -289,7 +289,6 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                       <div className="text-xs text-purple-400 font-medium mb-1">Critical Thinking Process</div>
                       <TypingAnimation text={currentThought} />
 
-                      {/* Previous thoughts with opacity effect */}
                       {previousThoughts.length > 1 && (
                         <div className="mt-2">
                           <button
@@ -320,15 +319,15 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                   {/* Bouncing dots animation */}
                   <div className="flex space-x-1 mt-2">
                     <div
-                      className="h-2 w-2 bg-purple-500/70 rounded-full animate-bounce"
+                      className="h-2 w-2 bg-gray-500/70 rounded-full animate-bounce"
                       style={{ animationDelay: "0ms" }}
                     />
                     <div
-                      className="h-2 w-2 bg-purple-500/70 rounded-full animate-bounce"
+                      className="h-2 w-2 bg-gray-500/70 rounded-full animate-bounce"
                       style={{ animationDelay: "150ms" }}
                     />
                     <div
-                      className="h-2 w-2 bg-purple-500/70 rounded-full animate-bounce"
+                      className="h-2 w-2 bg-gray-500/70 rounded-full animate-bounce"
                       style={{ animationDelay: "300ms" }}
                     />
                   </div>
