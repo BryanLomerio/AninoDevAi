@@ -5,7 +5,7 @@ import SettingsPanel from "@/components/SettingsPanel"
 import { initSpeechRecognition } from "@/utils/speechRecognition"
 import { loadVapiSDK, createVapiCall } from "@/utils/vapiHelper"
 import { Link } from "react-router-dom"
-import { toast } from "react-hot-toast"
+import { toast } from "react-hot-toast";
 
 import {
   sendMessageToGemini,
