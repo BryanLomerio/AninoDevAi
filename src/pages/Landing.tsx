@@ -114,7 +114,7 @@ export default function Home() {
 
             <div className="relative">
               <TabsContent value="chat" className="space-y-4 mt-0 focus-visible:outline-none focus-visible:ring-0">
-                <div className="bg-[#272727] rounded-lg p-8 text-center border border-gray-800">
+                <div className="bg-[#1E1E1E] rounded-lg p-8 text-center border border-gray-800">
                   <div className="mb-6 mx-auto w-20 h-20 flex items-center justify-center rounded-full bg-[#1e1e1e]">
                     <MessageSquare className="h-10 w-10 text-white" />
                   </div>
@@ -133,7 +133,7 @@ export default function Home() {
               </TabsContent>
 
               <TabsContent value="code" className="space-y-4 mt-0 focus-visible:outline-none focus-visible:ring-0">
-                <div className="bg-[#272727] rounded-lg p-6 border border-gray-800">
+                <div className="bg-[#1E1E1E] rounded-lg p-6 border border-gray-800">
                   <div className="text-center mb-6">
                    {/*  <div className="mb-6 mx-auto w-20 h-20 flex items-center justify-center rounded-full bg-[#1e1e1e]">
                       <Code className="h-10 w-10 text-white" />
