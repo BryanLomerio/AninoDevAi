@@ -67,7 +67,7 @@ const MessageInput = ({
             value={transcript}
             onChange={(e) => onTranscriptChange(e.target.value)}
             placeholder={isImageRequest ? "Describe the image you want..." : "Message AninoDevAI..."}
-            className="w-full min-h-[52px] max-h-[200px] bg-[#40414f] text-white rounded-xl resize-none py-3 pl-3 pr-3 pb-12 border-0 focus:ring-0 focus:outline-none shadow-sm overflow-hidden scrollbar-thin align-top"
+            className="w-full min-h-[52px] max-h-[200px] bg-[#303030] text-white rounded-xl resize-none py-3 pl-3 pr-3 pb-12 border-0 focus:ring-0 focus:outline-none shadow-sm overflow-hidden scrollbar-thin align-top"
             rows={1}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
