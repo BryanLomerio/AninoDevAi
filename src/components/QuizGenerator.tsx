@@ -16,20 +16,19 @@ import {
   XIcon,
   Settings,
   ChevronDown,
-  ChevronUp,
   Volume2,
   VolumeX,
   Brain,
 } from "lucide-react"
 import { initSpeechRecognition } from "@/utils/speechRecognition"
 import { speak, stopSpeaking, isSpeechSynthesisSupported } from "@/utils/textToSpeech"
-import { useToast } from "@/components/ui/use-toast"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 interface QuizQuestion {
   question: string
@@ -41,7 +40,6 @@ interface QuizQuestion {
 type QuizMode = "create" | "take"
 
 const QuizGenerator = () => {
-  const { toast } = useToast()
   const [inputText, setInputText] = useState("")
   const [isListening, setIsListening] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -51,11 +49,12 @@ const QuizGenerator = () => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const recognitionRef = useRef<any>(null)
   const [numQuestions, setNumQuestions] = useState(5)
-  const [showAdvanced, setShowAdvanced] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [speechSupported, setSpeechSupported] = useState(false)
   const [speechRate, setSpeechRate] = useState(1)
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+
+  // Quiz
   const [quizMode, setQuizMode] = useState<QuizMode>("create")
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [userAnswers, setUserAnswers] = useState<string[]>([])
@@ -89,7 +88,6 @@ const QuizGenerator = () => {
     }
   }, [currentQuestionIndex, quizMode, generatedQuiz, isMuted, speechSupported, speechRate])
 
-  // Speak explanation when shown
   useEffect(() => {
     if (showExplanation && !isMuted && speechSupported && generatedQuiz.length > 0) {
       const currentQuestion = generatedQuiz[currentQuestionIndex]
@@ -104,7 +102,7 @@ const QuizGenerator = () => {
     if (!isMuted) {
       stopSpeaking()
     } else if (quizMode === "take" && generatedQuiz.length > 0) {
-
+      // Resume speaking the current question
       const currentQuestion = generatedQuiz[currentQuestionIndex]
       if (currentQuestion) {
         let textToSpeak = currentQuestion.question
@@ -138,11 +136,7 @@ const QuizGenerator = () => {
       },
       (error) => {
         console.error("Speech recognition error:", error)
-        toast({
-          title: "Voice Recognition Error",
-          description: "There was an error with voice recognition. Please try again.",
-          variant: "destructive",
-        })
+        console.log("Voice Recognition Error: There was an error with voice recognition. Please try again.")
         setIsListening(false)
       },
     )
@@ -151,16 +145,9 @@ const QuizGenerator = () => {
       recognitionRef.current = recognition
       recognition.start()
       setIsListening(true)
-      toast({
-        title: "Voice Recognition Active",
-        description: "Start speaking. Click the mic button again to stop.",
-      })
+      console.log("Voice Recognition Active: Start speaking. Click the mic button again to stop.")
     } else {
-      toast({
-        title: "Voice Recognition Not Supported",
-        description: "Your browser doesn't support voice recognition.",
-        variant: "destructive",
-      })
+      console.log("Voice Recognition Not Supported: Your browser doesn't support voice recognition.")
     }
   }
 
@@ -172,17 +159,10 @@ const QuizGenerator = () => {
     reader.onload = (e) => {
       const text = e.target?.result as string
       setInputText(text)
-      toast({
-        title: "File Uploaded",
-        description: `Successfully loaded content from ${file.name}`,
-      })
+      console.log(`File Uploaded: Successfully loaded content from ${file.name}`)
     }
     reader.onerror = () => {
-      toast({
-        title: "Error Reading File",
-        description: "There was an error reading the file.",
-        variant: "destructive",
-      })
+      console.log("Error Reading File: There was an error reading the file.")
     }
     reader.readAsText(file)
   }
@@ -204,11 +184,7 @@ const QuizGenerator = () => {
 
   const generateQuiz = async () => {
     if (!inputText.trim()) {
-      toast({
-        title: "Input Required",
-        description: "Please provide text content to generate a quiz.",
-        variant: "destructive",
-      })
+      console.log("Input Required: Please provide text content to generate a quiz.")
       return
     }
 
@@ -263,20 +239,13 @@ const QuizGenerator = () => {
         setIsAnswerSubmitted(false)
         setSelectedOption("")
 
-        toast({
-          title: "Quiz Generated",
-          description: `Successfully generated ${quizData.length} questions. Let's start!`,
-        })
+        console.log(`Quiz Generated: Successfully generated ${quizData.length} questions. Let's start!`)
       } else {
         throw new Error("Could not parse quiz data from response")
       }
     } catch (error) {
       console.error("Error generating quiz:", error)
-      toast({
-        title: "Generation Failed",
-        description: error instanceof Error ? error.message : "Failed to generate quiz",
-        variant: "destructive",
-      })
+      console.log("Generation Failed: " + (error instanceof Error ? error.message : "Failed to generate quiz"))
     } finally {
       setIsGenerating(false)
     }
@@ -290,11 +259,7 @@ const QuizGenerator = () => {
 
   const handleAnswerSubmit = () => {
     if (!selectedOption && quizType === "multiple-choice") {
-      toast({
-        title: "Selection Required",
-        description: "Please select an answer before submitting.",
-        variant: "destructive",
-      })
+      console.log("Selection Required: Please select an answer before submitting.")
       return
     }
 
@@ -315,7 +280,6 @@ const QuizGenerator = () => {
     setIsAnswerSubmitted(true)
     setShowExplanation(true)
 
-    // Speak the result if not muted
     if (!isMuted && speechSupported) {
       const resultText = isCorrect ? "Correct!" : `Incorrect. The correct answer is: ${currentQuestion.answer}`
 
@@ -324,7 +288,6 @@ const QuizGenerator = () => {
   }
 
   const handleNextQuestion = () => {
-    // Stop any ongoing speech
     stopSpeaking()
 
     if (currentQuestionIndex < generatedQuiz.length - 1) {
@@ -334,10 +297,7 @@ const QuizGenerator = () => {
       setShowExplanation(false)
     } else {
       // Quiz completed
-      toast({
-        title: "Quiz Completed!",
-        description: `Your final score: ${score}/${generatedQuiz.length}`,
-      })
+      console.log(`Quiz Completed!: Your final score: ${score}/${generatedQuiz.length}`)
 
       // Speak the final score if not muted
       if (!isMuted && speechSupported) {
@@ -360,23 +320,17 @@ const QuizGenerator = () => {
   }
 
   const backToCreation = () => {
-    // Stop any ongoing speech
     stopSpeaking()
-
-    // First reset all quiz-related states
     setCurrentQuestionIndex(0)
     setUserAnswers([])
     setScore(0)
     setSelectedOption("")
     setIsAnswerSubmitted(false)
     setShowExplanation(false)
-
-    // Then change the mode and clear the quiz
     setQuizMode("create")
     setGeneratedQuiz([])
   }
 
-  // Render the quiz creation interface
   const renderQuizCreation = () => (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
@@ -400,8 +354,8 @@ const QuizGenerator = () => {
               className="w-16 h-8 text-center bg-[#252525] border-gray-700"
             />
           </div>
-          <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced} className="w-full sm:w-auto">
-            <CollapsibleTrigger asChild>
+          <Dialog>
+            <DialogTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
@@ -409,17 +363,15 @@ const QuizGenerator = () => {
               >
                 <Settings className="h-3.5 w-3.5 mr-1" />
                 <span className="text-xs">Options</span>
-                {showAdvanced ? (
-                  <ChevronUp className="h-3.5 w-3.5 ml-1" />
-                ) : (
-                  <ChevronDown className="h-3.5 w-3.5 ml-1" />
-                )}
               </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2 p-3 bg-[#1E1E1E] border border-gray-800 rounded-md shadow-lg">
-              <div className="space-y-3">
+            </DialogTrigger>
+            <DialogContent className="bg-[#1E1E1E] border-gray-800 shadow-lg max-w-md text-white">
+              <DialogHeader>
+                <DialogTitle className="text-white">Quiz Settings</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 mt-2">
                 <div>
-                  <Label htmlFor="quiz-type" className="text-xs font-medium">
+                  <Label htmlFor="quiz-type" className="text-xs font-medium text-white">
                     Quiz Type
                   </Label>
                   <RadioGroup
@@ -434,7 +386,7 @@ const QuizGenerator = () => {
                         id="multiple-choice"
                         className="border-white text-white data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
                       />
-                      <Label htmlFor="multiple-choice" className="text-sm">
+                      <Label htmlFor="multiple-choice" className="text-sm text-white">
                         Multiple Choice
                       </Label>
                     </div>
@@ -444,7 +396,7 @@ const QuizGenerator = () => {
                         id="short-answer"
                         className="border-white text-white data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
                       />
-                      <Label htmlFor="short-answer" className="text-sm">
+                      <Label htmlFor="short-answer" className="text-sm text-white">
                         Short Answer
                       </Label>
                     </div>
@@ -454,14 +406,16 @@ const QuizGenerator = () => {
                         id="true-false"
                         className="border-white text-white data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
                       />
-                      <Label htmlFor="true-false" className="text-sm">
+                      <Label htmlFor="true-false" className="text-sm text-white">
                         True/False
                       </Label>
                     </div>
                   </RadioGroup>
                 </div>
                 <div>
-                  <Label className="text-xs font-medium mb-2 block">Number of Questions: {numQuestions}</Label>
+                  <Label className="text-xs font-medium mb-2 block text-white">
+                    Number of Questions: {numQuestions}
+                  </Label>
                   {numQuestions <= 20 ? (
                     <Slider
                       defaultValue={[5]}
@@ -477,18 +431,24 @@ const QuizGenerator = () => {
                   )}
                 </div>
               </div>
-            </CollapsibleContent>
-          </Collapsible>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
       <Tabs value={inputMethod} onValueChange={setInputMethod} className="w-full">
-        <TabsList className="grid grid-cols-2 mb-3 bg-[#272727] rounded-lg overflow-hidden">
-          <TabsTrigger value="text" className="data-[state=active]:bg-[#1e1e1e] data-[state=active]:text-white py-2">
+        <TabsList className="grid grid-cols-2 mb-3 bg-[#272727] rounded-lg overflow-hidden w-full">
+          <TabsTrigger
+            value="text"
+            className="data-[state=active]:bg-[#1e1e1e] data-[state=active]:text-white py-2 flex items-center justify-center"
+          >
             <FileText className="h-4 w-4 mr-2" />
             <span>Text Input</span>
           </TabsTrigger>
-          <TabsTrigger value="file" className="data-[state=active]:bg-[#1e1e1e] data-[state=active]:text-white py-2">
+          <TabsTrigger
+            value="file"
+            className="data-[state=active]:bg-[#1e1e1e] data-[state=active]:text-white py-2 flex items-center justify-center"
+          >
             <Upload className="h-4 w-4 mr-2" />
             <span>File Upload</span>
           </TabsTrigger>
@@ -643,7 +603,7 @@ const QuizGenerator = () => {
           </div>
         </div>
 
-        <Progress value={progressPercentage} className="h-2 bg-gray-800" indicatorClassName="bg-green-600" />
+        <Progress value={progressPercentage} className="h-2 bg-gray-800" indicatorClassName="bg-green-500" />
 
         <Card className="p-5 bg-[#1E1E1E] border-gray-800 shadow-md">
           <div className="space-y-5">
