@@ -19,6 +19,7 @@ import {
   ChevronUp,
   Volume2,
   VolumeX,
+  Brain,
 } from "lucide-react"
 import { initSpeechRecognition } from "@/utils/speechRecognition"
 import { speak, stopSpeaking, isSpeechSynthesisSupported } from "@/utils/textToSpeech"
@@ -55,8 +56,6 @@ const QuizGenerator = () => {
   const [speechSupported, setSpeechSupported] = useState(false)
   const [speechRate, setSpeechRate] = useState(1)
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
-
-  // Quiz taking states
   const [quizMode, setQuizMode] = useState<QuizMode>("create")
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [userAnswers, setUserAnswers] = useState<string[]>([])
@@ -69,7 +68,6 @@ const QuizGenerator = () => {
     setSpeechSupported(isSpeechSynthesisSupported())
   }, [])
 
-  // Stop
   useEffect(() => {
     return () => {
       stopSpeaking()
@@ -79,22 +77,23 @@ const QuizGenerator = () => {
   useEffect(() => {
     if (quizMode === "take" && generatedQuiz.length > 0 && !isMuted && speechSupported) {
       const currentQuestion = generatedQuiz[currentQuestionIndex]
-      let textToSpeak = currentQuestion.question
+      if (currentQuestion) {
+        let textToSpeak = currentQuestion.question
 
-      // Add options to speech if it's multiple choice
-      if (currentQuestion.options) {
-        textToSpeak += ". Options: " + currentQuestion.options.join(". ")
+        if (currentQuestion.options) {
+          textToSpeak += ". Options: " + currentQuestion.options.join(". ")
+        }
+
+        currentUtteranceRef.current = speak(textToSpeak, speechRate)
       }
-
-      currentUtteranceRef.current = speak(textToSpeak, speechRate)
     }
   }, [currentQuestionIndex, quizMode, generatedQuiz, isMuted, speechSupported, speechRate])
 
   // Speak explanation when shown
   useEffect(() => {
-    if (showExplanation && !isMuted && speechSupported) {
+    if (showExplanation && !isMuted && speechSupported && generatedQuiz.length > 0) {
       const currentQuestion = generatedQuiz[currentQuestionIndex]
-      if (currentQuestion.explanation) {
+      if (currentQuestion && currentQuestion.explanation) {
         const textToSpeak = `Explanation: ${currentQuestion.explanation}`
         currentUtteranceRef.current = speak(textToSpeak, speechRate)
       }
@@ -105,15 +104,17 @@ const QuizGenerator = () => {
     if (!isMuted) {
       stopSpeaking()
     } else if (quizMode === "take" && generatedQuiz.length > 0) {
-      // Resume
+
       const currentQuestion = generatedQuiz[currentQuestionIndex]
-      let textToSpeak = currentQuestion.question
+      if (currentQuestion) {
+        let textToSpeak = currentQuestion.question
 
-      if (currentQuestion.options) {
-        textToSpeak += ". Options: " + currentQuestion.options.join(". ")
+        if (currentQuestion.options) {
+          textToSpeak += ". Options: " + currentQuestion.options.join(". ")
+        }
+
+        currentUtteranceRef.current = speak(textToSpeak, speechRate)
       }
-
-      currentUtteranceRef.current = speak(textToSpeak, speechRate)
     }
     setIsMuted(!isMuted)
   }
@@ -338,7 +339,7 @@ const QuizGenerator = () => {
         description: `Your final score: ${score}/${generatedQuiz.length}`,
       })
 
-      // final score
+      // Speak the final score if not muted
       if (!isMuted && speechSupported) {
         const scoreText = `Quiz completed! Your final score is ${score} out of ${generatedQuiz.length}.`
         currentUtteranceRef.current = speak(scoreText, speechRate)
@@ -347,6 +348,7 @@ const QuizGenerator = () => {
   }
 
   const restartQuiz = () => {
+    // Stop any ongoing speech
     stopSpeaking()
 
     setCurrentQuestionIndex(0)
@@ -361,6 +363,15 @@ const QuizGenerator = () => {
     // Stop any ongoing speech
     stopSpeaking()
 
+    // First reset all quiz-related states
+    setCurrentQuestionIndex(0)
+    setUserAnswers([])
+    setScore(0)
+    setSelectedOption("")
+    setIsAnswerSubmitted(false)
+    setShowExplanation(false)
+
+    // Then change the mode and clear the quiz
     setQuizMode("create")
     setGeneratedQuiz([])
   }
@@ -368,8 +379,13 @@ const QuizGenerator = () => {
   // Render the quiz creation interface
   const renderQuizCreation = () => (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-2">
-        <h2 className="text-xl font-semibold">Quiz Generator</h2>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
+        <div className="flex items-center gap-2">
+          <div className="bg-green-800 p-2 rounded-full">
+            <Brain className="h-5 w-5 text-white" />
+          </div>
+          <h2 className="text-xl font-semibold">Quiz Generator</h2>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2">
             <Label htmlFor="num-questions" className="whitespace-nowrap text-sm">
@@ -400,52 +416,52 @@ const QuizGenerator = () => {
                 )}
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2 p-2 bg-[#1E1E1E] border border-gray-800 rounded-md">
-              <div className="space-y-2">
+            <CollapsibleContent className="mt-2 p-3 bg-[#1E1E1E] border border-gray-800 rounded-md shadow-lg">
+              <div className="space-y-3">
                 <div>
-                  <Label htmlFor="quiz-type" className="text-xs">
+                  <Label htmlFor="quiz-type" className="text-xs font-medium">
                     Quiz Type
                   </Label>
                   <RadioGroup
                     id="quiz-type"
                     value={quizType}
                     onValueChange={setQuizType}
-                    className="flex flex-wrap space-x-4 mt-1"
+                    className="flex flex-wrap gap-4 mt-2"
                   >
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-2">
                       <RadioGroupItem
                         value="multiple-choice"
                         id="multiple-choice"
                         className="border-white text-white data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
                       />
-                      <Label htmlFor="multiple-choice" className="text-xs">
+                      <Label htmlFor="multiple-choice" className="text-sm">
                         Multiple Choice
                       </Label>
                     </div>
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-2">
                       <RadioGroupItem
                         value="short-answer"
                         id="short-answer"
                         className="border-white text-white data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
                       />
-                      <Label htmlFor="short-answer" className="text-xs">
+                      <Label htmlFor="short-answer" className="text-sm">
                         Short Answer
                       </Label>
                     </div>
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-2">
                       <RadioGroupItem
                         value="true-false"
                         id="true-false"
                         className="border-white text-white data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
                       />
-                      <Label htmlFor="true-false" className="text-xs">
+                      <Label htmlFor="true-false" className="text-sm">
                         True/False
                       </Label>
                     </div>
                   </RadioGroup>
                 </div>
                 <div>
-                  <Label className="text-xs mb-1 block">Number of Questions: {numQuestions}</Label>
+                  <Label className="text-xs font-medium mb-2 block">Number of Questions: {numQuestions}</Label>
                   {numQuestions <= 20 ? (
                     <Slider
                       defaultValue={[5]}
@@ -467,23 +483,23 @@ const QuizGenerator = () => {
       </div>
 
       <Tabs value={inputMethod} onValueChange={setInputMethod} className="w-full">
-        <TabsList className="grid grid-cols-2 mb-2 bg-[#272727] rounded-lg overflow-hidden">
-          <TabsTrigger value="text" className="data-[state=active]:bg-[#1e1e1e] data-[state=active]:text-white ">
+        <TabsList className="grid grid-cols-2 mb-3 bg-[#272727] rounded-lg overflow-hidden">
+          <TabsTrigger value="text" className="data-[state=active]:bg-[#1e1e1e] data-[state=active]:text-white py-2">
             <FileText className="h-4 w-4 mr-2" />
             <span>Text Input</span>
           </TabsTrigger>
-          <TabsTrigger value="file" className="data-[state=active]:bg-[#1e1e1e] data-[state=active]:text-white">
+          <TabsTrigger value="file" className="data-[state=active]:bg-[#1e1e1e] data-[state=active]:text-white py-2">
             <Upload className="h-4 w-4 mr-2" />
             <span>File Upload</span>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="text" className="mt-0">
-          <Card className="p-3 bg-[#1E1E1E] border-gray-800">
+          <Card className="p-4 bg-[#1E1E1E] border-gray-800 shadow-md">
             <div className="space-y-3">
               <Textarea
                 placeholder="Enter or paste your text content here..."
-                className="min-h-[150px] bg-[#252525] border-gray-700"
+                className="min-h-[180px] bg-[#252525] border-gray-700 focus:border-green-600 focus:ring-1 focus:ring-green-600"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
               />
@@ -491,7 +507,9 @@ const QuizGenerator = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  className={`${isListening ? "bg-red-900 hover:bg-red-800" : "bg-[#2A2A2A] hover:bg-[#333333]"} border-gray-700`}
+                  className={`${
+                    isListening ? "bg-red-900 hover:bg-red-800" : "bg-[#2A2A2A] hover:bg-[#333333]"
+                  } border-gray-700 transition-colors`}
                   onClick={handleVoiceInput}
                 >
                   <Mic className="h-4 w-4 mr-2" />
@@ -512,7 +530,7 @@ const QuizGenerator = () => {
         </TabsContent>
 
         <TabsContent value="file" className="mt-0">
-          <Card className="p-4 bg-[#1E1E1E] border-gray-800 flex flex-col items-center justify-center">
+          <Card className="p-5 bg-[#1E1E1E] border-gray-800 flex flex-col items-center justify-center shadow-md">
             <input
               type="file"
               ref={fileInputRef}
@@ -520,18 +538,18 @@ const QuizGenerator = () => {
               accept=".txt,.md,.doc,.docx,.pdf"
               className="hidden"
             />
-            <div className="text-center space-y-3">
-              <div className="w-12 h-12 bg-[#252525] text-white rounded-full flex items-center justify-center mx-auto">
+            <div className="text-center space-y-4">
+              <div className="w-14 h-14 bg-[#252525] text-white rounded-full flex items-center justify-center mx-auto">
                 <Upload className="h-6 w-6 text-gray-400" />
               </div>
               <div>
-                <h3 className="font-medium text-sm">Upload a Text File</h3>
+                <h3 className="font-medium text-base">Upload a Text File</h3>
                 <p className="text-xs text-gray-400 mt-1">Supports TXT, MD, DOC, DOCX, PDF</p>
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-[#2A2A2A] hover:bg-[#333333] border-gray-700"
+                className="bg-[#2A2A2A] hover:bg-[#333333] border-gray-700 px-4"
                 onClick={triggerFileUpload}
               >
                 <Upload className="h-4 w-4 mr-2" />
@@ -539,8 +557,8 @@ const QuizGenerator = () => {
               </Button>
             </div>
             {inputText && (
-              <div className="mt-3 w-full">
-                <div className="flex items-center justify-between bg-[#252525] p-2 rounded-md">
+              <div className="mt-4 w-full">
+                <div className="flex items-center justify-between bg-[#252525] p-3 rounded-md">
                   <div className="flex items-center">
                     <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                     <span className="text-sm truncate max-w-[200px]">File content loaded</span>
@@ -556,13 +574,13 @@ const QuizGenerator = () => {
       </Tabs>
 
       <Button
-        className="w-full bg-green-800 hover:bg-green-900"
+        className="w-full bg-green-800 hover:bg-green-700 transition-colors py-6 text-base font-medium shadow-lg"
         onClick={generateQuiz}
         disabled={isGenerating || !inputText.trim()}
       >
         {isGenerating ? (
           <>
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
             Generating {numQuestions} Question{numQuestions !== 1 ? "s" : ""}...
           </>
         ) : (
@@ -582,8 +600,13 @@ const QuizGenerator = () => {
 
     return (
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Quiz</h2>
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex items-center gap-2">
+            <div className="bg-green-800 p-1.5 rounded-full">
+              <Brain className="h-4 w-4 text-white" />
+            </div>
+            <h2 className="text-lg font-semibold">Quiz</h2>
+          </div>
           <div className="flex items-center gap-3">
             {speechSupported && (
               <div className="flex items-center gap-2">
@@ -591,7 +614,9 @@ const QuizGenerator = () => {
                   variant="outline"
                   size="sm"
                   onClick={toggleMute}
-                  className="bg-[#2A2A2A] hover:bg-[#333333] border-gray-700 h-8 w-8 p-0"
+                  className={`${
+                    isMuted ? "bg-[#2A2A2A]" : "bg-green-900/30 border-green-800"
+                  } hover:bg-[#333333] border-gray-700 h-8 w-8 p-0 rounded-full`}
                   title={isMuted ? "Unmute" : "Mute"}
                 >
                   {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
@@ -612,36 +637,36 @@ const QuizGenerator = () => {
                 )}
               </div>
             )}
-            <div className="text-sm text-gray-400">
+            <div className="text-sm font-medium px-2 py-1 bg-[#252525] rounded-md">
               {currentQuestionIndex + 1} of {generatedQuiz.length}
             </div>
           </div>
         </div>
 
-        <Progress value={progressPercentage} className="h-2" />
+        <Progress value={progressPercentage} className="h-2 bg-gray-800" indicatorClassName="bg-green-600" />
 
-        <Card className="p-4 bg-[#1E1E1E] border-gray-800">
-          <div className="space-y-4">
-            <h3 className="text-base font-medium">{currentQuestion.question}</h3>
+        <Card className="p-5 bg-[#1E1E1E] border-gray-800 shadow-md">
+          <div className="space-y-5">
+            <h3 className="text-lg font-medium">{currentQuestion.question}</h3>
 
             {currentQuestion.options ? (
               <RadioGroup
                 value={selectedOption}
                 onValueChange={setSelectedOption}
-                className="space-y-2"
+                className="space-y-3"
                 disabled={isAnswerSubmitted}
               >
                 {currentQuestion.options.map((option, index) => (
                   <div
                     key={index}
-                    className={`flex items-center space-x-2 p-2 rounded-md border ${
+                    className={`flex items-center space-x-3 p-3 rounded-md border ${
                       isAnswerSubmitted
                         ? option === currentQuestion.answer
                           ? "bg-green-900/20 border-green-800"
                           : option === selectedOption
                             ? "bg-red-900/20 border-red-800"
                             : "bg-[#2A2A2A] border-gray-700"
-                        : "bg-[#2A2A2A] border-gray-700 hover:bg-[#333333] cursor-pointer"
+                        : "bg-[#2A2A2A] border-gray-700 hover:bg-[#333333] cursor-pointer transition-colors"
                     }`}
                     onClick={() => !isAnswerSubmitted && setSelectedOption(option)}
                   >
@@ -656,10 +681,10 @@ const QuizGenerator = () => {
                     >
                       <span>{option}</span>
                       {isAnswerSubmitted && option === currentQuestion.answer && (
-                        <CheckIcon className="h-4 w-4 text-green-500" />
+                        <CheckIcon className="h-5 w-5 text-green-500" />
                       )}
                       {isAnswerSubmitted && option === selectedOption && option !== currentQuestion.answer && (
-                        <XIcon className="h-4 w-4 text-red-500" />
+                        <XIcon className="h-5 w-5 text-red-500" />
                       )}
                     </Label>
                   </div>
@@ -669,13 +694,13 @@ const QuizGenerator = () => {
               <div className="space-y-3">
                 <Textarea
                   placeholder="Type your answer here..."
-                  className="min-h-[80px] bg-[#252525] border-gray-700"
+                  className="min-h-[100px] bg-[#252525] border-gray-700 focus:border-green-600 focus:ring-1 focus:ring-green-600"
                   value={selectedOption}
                   onChange={(e) => setSelectedOption(e.target.value)}
                   disabled={isAnswerSubmitted}
                 />
                 {isAnswerSubmitted && (
-                  <div className="p-2 rounded-md bg-green-900/20 border border-green-800">
+                  <div className="p-3 rounded-md bg-green-900/20 border border-green-800">
                     <span className="font-medium">Correct answer: </span>
                     {currentQuestion.answer}
                   </div>
@@ -685,25 +710,28 @@ const QuizGenerator = () => {
 
             {showExplanation && currentQuestion.explanation && (
               <Collapsible defaultOpen={true} className="mt-2">
-                <CollapsibleTrigger className="flex items-center text-sm text-gray-400 hover:text-gray-300">
+                <CollapsibleTrigger className="flex items-center text-sm text-gray-300 hover:text-white transition-colors">
                   <span className="font-medium">Explanation</span>
                   <ChevronDown className="h-4 w-4 ml-1" />
                 </CollapsibleTrigger>
-                <CollapsibleContent className="mt-2 p-3 bg-[#252525] rounded-md border border-gray-700">
+                <CollapsibleContent className="mt-3 p-4 bg-[#252525] rounded-md border border-gray-700">
                   <p className="text-sm text-gray-300">{currentQuestion.explanation}</p>
                 </CollapsibleContent>
               </Collapsible>
             )}
 
-            <div className="flex flex-col sm:flex-row justify-between gap-2 pt-2">
+            <div className="flex flex-col sm:flex-row justify-between gap-3 pt-2">
               {!isAnswerSubmitted ? (
-                <Button onClick={handleAnswerSubmit} className="bg-green-800 hover:bg-green-900 w-full sm:w-auto">
+                <Button
+                  onClick={handleAnswerSubmit}
+                  className="bg-green-800 hover:bg-green-700 transition-colors w-full sm:w-auto py-5 text-base font-medium"
+                >
                   Submit Answer
                 </Button>
               ) : (
                 <Button
                   onClick={handleNextQuestion}
-                  className="bg-blue-800 hover:bg-blue-900 w-full sm:w-auto"
+                  className="bg-blue-800 hover:bg-blue-700 transition-colors w-full sm:w-auto py-5 text-base font-medium"
                   disabled={isLastQuestion && isAnswerSubmitted}
                 >
                   {isLastQuestion ? "Finish Quiz" : "Next Question"}
@@ -735,23 +763,22 @@ const QuizGenerator = () => {
         </Card>
 
         {isLastQuestion && isAnswerSubmitted && (
-          <Card className="p-4 bg-[#1E1E1E] border-gray-800">
-            <div className="text-center space-y-3">
-              <h3 className="text-lg font-medium">Quiz Completed!</h3>
-              <div className="text-3xl font-bold text-green-500">
+          <Card className="p-5 bg-[#1E1E1E] border-gray-800 shadow-md">
+            <div className="text-center space-y-4">
+              <h3 className="text-xl font-medium">Quiz Completed!</h3>
+              <div className="text-4xl font-bold text-green-500">
                 {score}/{generatedQuiz.length}
               </div>
               <p className="text-sm text-gray-400">
                 You answered {score} out of {generatedQuiz.length} questions correctly.
               </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-3 pt-1">
-                <Button onClick={restartQuiz} size="sm" className="bg-green-800 hover:bg-green-900">
-                  <RefreshCw className="h-4 w-4 mr-1" />
+              <div className="flex flex-col sm:flex-row justify-center gap-3 pt-2">
+                <Button onClick={restartQuiz} className="bg-green-800 hover:bg-green-700 transition-colors">
+                  <RefreshCw className="h-4 w-4 mr-2" />
                   Try Again
                 </Button>
                 <Button
                   variant="outline"
-                  size="sm"
                   className="bg-[#2A2A2A] hover:bg-[#333333] border-gray-700"
                   onClick={backToCreation}
                 >
