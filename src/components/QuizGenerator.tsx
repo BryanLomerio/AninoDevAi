@@ -299,7 +299,7 @@ const QuizGenerator = () => {
       // Quiz completed
       console.log(`Quiz Completed!: Your final score: ${score}/${generatedQuiz.length}`)
 
-      // Speak the final score if not muted
+      //final scre
       if (!isMuted && speechSupported) {
         const scoreText = `Quiz completed! Your final score is ${score} out of ${generatedQuiz.length}.`
         currentUtteranceRef.current = speak(scoreText, speechRate)
@@ -308,9 +308,7 @@ const QuizGenerator = () => {
   }
 
   const restartQuiz = () => {
-    // Stop any ongoing speech
     stopSpeaking()
-
     setCurrentQuestionIndex(0)
     setUserAnswers([])
     setScore(0)
@@ -338,7 +336,7 @@ const QuizGenerator = () => {
           <div className="bg-green-800 p-2 rounded-full">
             <Brain className="h-5 w-5 text-white" />
           </div>
-          <h2 className="text-xl font-semibold">Quiz Generator</h2>
+          <h2 className="text-xl font-semibold">SelfQuizzer</h2>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2">
@@ -437,17 +435,17 @@ const QuizGenerator = () => {
       </div>
 
       <Tabs value={inputMethod} onValueChange={setInputMethod} className="w-full">
-        <TabsList className="grid grid-cols-2 mb-3 bg-[#272727] rounded-lg overflow-hidden w-full">
+      <TabsList className="relative inline-flex mx-auto mb-3 bg-[#272727] rounded-lg overflow-hidden">
           <TabsTrigger
             value="text"
-            className="data-[state=active]:bg-[#1e1e1e] data-[state=active]:text-white py-2 flex items-center justify-center"
+            className="flex-1 py-2 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:bg-green-800  data-[state=active]:text-white flex items-center justify-center"
           >
             <FileText className="h-4 w-4 mr-2" />
             <span>Text Input</span>
           </TabsTrigger>
           <TabsTrigger
             value="file"
-            className="data-[state=active]:bg-[#1e1e1e] data-[state=active]:text-white py-2 flex items-center justify-center"
+ className="flex-1 py-2 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:text-white data-[state=active]:bg-green-800 flex items-center justify-center"
           >
             <Upload className="h-4 w-4 mr-2" />
             <span>File Upload</span>
@@ -603,7 +601,7 @@ const QuizGenerator = () => {
           </div>
         </div>
 
-        <Progress value={progressPercentage} className="h-2 bg-gray-800" indicatorClassName="bg-green-500" />
+        <Progress value={progressPercentage} className="h-2 bg-gray-800" />
 
         <Card className="p-5 bg-[#1E1E1E] border-gray-800 shadow-md">
           <div className="space-y-5">
@@ -706,7 +704,7 @@ const QuizGenerator = () => {
                   className="bg-[#2A2A2A] hover:bg-[#333333] border-gray-700 flex-1 sm:flex-none"
                   onClick={restartQuiz}
                 >
-                  <RefreshCw className="h-4 w-4 mr-1" />
+                  <RefreshCw className="h-4 w-4 mr-2" />
                   Restart
                 </Button>
                 <Button

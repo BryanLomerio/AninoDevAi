@@ -1,16 +1,15 @@
+
 import { Link } from "react-router-dom"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ImageIcon, MessageSquare, Github, Coffee, FileQuestion } from "lucide-react"
+import { ImageIcon, MessageSquare, Github, Coffee, FileQuestion, Play } from "lucide-react"
 import ImageUploader from "@/components/ImageUploader"
 import CodeGenerationResult from "@/components/CodeGenerationResult"
 import QuizGenerator from "@/components/QuizGenerator"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/lib/use-toast"
 import { generateCodeFromImage } from "@/utils/imageToCodeHelper"
-import Alogo from "@/assets/brain.png"
-
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
+import Alogo from "@/assets/brain.png";
 
 export default function LandingPage() {
   const { toast } = useToast()
@@ -19,6 +18,8 @@ export default function LandingPage() {
   const [activeTab, setActiveTab] = useState("chat")
 
   const handleImageUpload = async (file: File) => {
+    const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+
     if (!GEMINI_API_KEY) {
       toast({
         title: "API Key Missing",
@@ -56,7 +57,7 @@ export default function LandingPage() {
             <div className="flex items-center justify-center sm:justify-start gap-3 text-center sm:text-left">
               <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-slate-800 flex items-center justify-center">
                 <img
-                  src={Alogo || "/placeholder.svg"}
+                  src={Alogo}
                   alt="AI Logo"
                   className="w-full h-full object-contain transition-transform transform hover:scale-105"
                 />
@@ -114,7 +115,7 @@ export default function LandingPage() {
                 className="flex items-center justify-center data-[state=active]:bg-[#1e1e1e] data-[state=active]:text-white rounded-md transition-all"
               >
                 <FileQuestion className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Quiz Generator</span>
+                <span className="hidden sm:inline">SelfQuizzer</span>
               </TabsTrigger>
             </TabsList>
 
@@ -141,8 +142,17 @@ export default function LandingPage() {
             </TabsContent>
 
             <TabsContent value="quiz" className="space-y-4 mt-0 focus-visible:outline-none focus-visible:ring-0">
-              <div className="bg-[#1E1E1E] rounded-lg p-6 border border-gray-800">
-                <QuizGenerator />
+              <div className="bg-[#1E1E1E] rounded-lg p-8 text-center border border-gray-800">
+                <h2 className="text-xl font-semibold mb-4">Generate Quiz with AninoDevAI</h2>
+                <p className="text-gray-400 mb-6 max-w-lg mx-auto">
+                  Create custom quizzes from text, study materials, or any content to test your knowledge.
+                </p>
+                <Link to="/quiz">
+                  <Button size="lg" className="bg-green-800 hover:bg-green-900 text-white shadow-lg">
+                    <Play className="h-4 w-4 mr-2" />
+                    Start Quiz
+                  </Button>
+                </Link>
               </div>
             </TabsContent>
           </Tabs>
