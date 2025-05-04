@@ -3,7 +3,7 @@ import type { Message } from "../utils/aiHelpers"
 import ReactMarkdown from "react-markdown"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism"
-import { Check, Copy, User, Bot, ThumbsUp, ThumbsDown } from "lucide-react"
+import { Check, Copy, ThumbsUp, ThumbsDown, ChevronDown, ChevronUp } from "lucide-react"
 
 interface ChatDisplayProps {
   messages: Message[]
@@ -23,12 +23,12 @@ const CodeBlock: React.FC<{ language: string; value: string }> = ({ language, va
   }
 
   return (
-    <div className="relative mt-3 mb-3 rounded-md border border-slate-700 w-full">
-      <div className="flex items-center justify-between bg-slate-700 px-3 py-1.5 text-xs text-slate-300">
-        <span>{language}</span>
+    <div className="relative mt-4 mb-4 rounded-md border border-slate-700 overflow-hidden w-full">
+      <div className="flex items-center justify-between bg-slate-800 px-4 py-2 text-xs text-slate-300">
+        <span className="font-mono">{language}</span>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1 text-xs hover:text-white transition-colors"
+          className="flex items-center gap-1.5 text-xs hover:text-white transition-colors"
           aria-label="Copy code"
         >
           {copied ? (
@@ -54,7 +54,7 @@ const CodeBlock: React.FC<{ language: string; value: string }> = ({ language, va
             margin: 0,
             padding: "1rem",
             fontSize: "0.875rem",
-            background: "#000",
+            background: "#0d1117",
             whiteSpace: "pre-wrap",
             wordBreak: "break-word",
           }}
@@ -66,7 +66,7 @@ const CodeBlock: React.FC<{ language: string; value: string }> = ({ language, va
   )
 }
 
-// Typing animation component for the thinking process
+// Typing
 const TypingAnimation: React.FC<{ text: string }> = ({ text }) => {
   const [displayedText, setDisplayedText] = useState("")
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -91,6 +91,15 @@ const TypingAnimation: React.FC<{ text: string }> = ({ text }) => {
   return <div className="text-sm text-slate-300 mb-2 break-words">{displayedText}</div>
 }
 
+// Loading
+const LoadingIndicator = () => (
+  <div className="flex space-x-1.5 items-center mb-4">
+    <div className="h-2 w-2 bg-emerald-500/70 rounded-full animate-pulse" style={{ animationDelay: "0ms" }} />
+    <div className="h-2 w-2 bg-emerald-500/70 rounded-full animate-pulse" style={{ animationDelay: "150ms" }} />
+    <div className="h-2 w-2 bg-emerald-500/70 rounded-full animate-pulse" style={{ animationDelay: "300ms" }} />
+  </div>
+)
+
 const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedImages, thinking, thoughts }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [copiedMessageIndex, setCopiedMessageIndex] = useState<number | null>(null)
@@ -98,7 +107,7 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
   const [previousThoughts, setPreviousThoughts] = useState<string[]>([])
   const [showPreviousThoughts, setShowPreviousThoughts] = useState(false)
 
-  // Track current and previous thoughts
+  // current and prev
   useEffect(() => {
     if (thinking && thoughts.length > 0) {
       const currentThought = thoughts[thoughts.length - 1]
@@ -111,7 +120,9 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
   }, [thinking, thoughts])
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+    }
   }, [messages, loading, thinking, thoughts])
 
   const copyMessageToClipboard = (text: string, index: number) => {
@@ -123,115 +134,165 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
   const currentThought = thinking && thoughts.length > 0 ? thoughts[thoughts.length - 1] : null
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#1e1e1e] text-white">
-      <div className="flex-1 w-full overflow-y-auto overflow-x-hidden">
-        {messages.length === 0 && !loading && !thinking ? (
-          <div className="h-full flex flex-col items-center justify-center text-slate-400 px-4">
-            <Bot className="h-12 w-12 mb-3 opacity-50" />
-            <h3 className="text-lg font-medium text-white mb-2">Start a conversation with AninoDevAI</h3>
-            <p className="text-sm text-center text-slate-400 max-w-md">Ask questions, generate code, create images, or just chat.</p>
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md w-full">
-              <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 hover:bg-slate-800 transition-colors">
-                <p className="text-sm font-medium text-white mb-1">Turn off AI voice</p>
-                <p className="text-xs text-slate-400">Adjust settings in the menu</p>
-              </div>
-              <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 hover:bg-slate-800 transition-colors">
-                <p className="text-sm font-medium text-white mb-1">Generate images</p>
-                <p className="text-xs text-slate-400">Click the image icon to create</p>
-              </div>
+    <div className="w-full text-white pb-4">
+      {messages.length === 0 && !loading && !thinking ? (
+        <div className="min-h-[70vh] flex flex-col items-center justify-center text-slate-400 px-4 py-8">
+          <h3 className="text-xl font-medium text-white mb-3">Start a conversation with AninoDevAI</h3>
+          <p className="text-sm text-center text-slate-400 max-w-md mb-6">
+            Ask questions, generate code, create images, or just chat.
+          </p>
+          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md w-full">
+            <div className="bg-[#40414F] border border-slate-700/50 rounded-lg p-4 hover:bg-slate-800 transition-colors cursor-pointer">
+              <p className="text-sm font-medium text-white mb-1">Turn off AI voice</p>
+              <p className="text-xs text-slate-400">Adjust settings in the menu</p>
+            </div>
+            <div className="bg-[#40414F] border border-slate-700/50 rounded-lg p-4 hover:bg-slate-800 transition-colors cursor-pointer">
+              <p className="text-sm font-medium text-white mb-1">Generate images</p>
+              <p className="text-xs text-slate-400">Click the image icon to create</p>
             </div>
           </div>
-        ) : (
-          <div className="w-full px-4 sm:px-6 md:max-w-3xl md:mx-auto">
-            {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`mb-6 w-full ${msg.role === "user" ? "" : "border-b border-slate-700/30 pb-6"}`}
-              >
-                <div className={`flex items-start gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`flex-shrink-0 ${msg.role === "user" ? "order-2" : "order-1"}`}>
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        msg.role === "user" ? "bg-purple-600" : "bg-emerald-600"
-                      }`}
-                    >
-                      {msg.role === "user" ? (
-                        <User className="h-4 w-4 text-white" />
-                      ) : (
-                        <Bot className="h-4 w-4 text-white" />
-                      )}
+        </div>
+      ) : (
+        <div className="w-full max-w-3xl mx-auto">
+          {messages.map((msg, index) => (
+            <div key={index} className="w-full border-b border-slate-800/10 py-6">
+              <div className="max-w-3xl mx-auto px-4 sm:px-6">
+                {msg.role === "user" ? (
+                  // User message
+                  <div className="flex flex-col items-end">
+                    <div className="max-w-[90%] md:max-w-[75%]">
+                      <div className="prose prose-invert break-words">
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => <p className="text-sm mb-3 break-words leading-relaxed">{children}</p>,
+                            a: ({ children, href }) => (
+                              <a
+                                href={href}
+                                className="text-blue-400 hover:underline break-words"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                {children}
+                              </a>
+                            ),
+                            ul: ({ children }) => <ul className="list-disc pl-5 mb-3 text-sm space-y-1">{children}</ul>,
+                            ol: ({ children }) => (
+                              <ol className="list-decimal pl-5 mb-3 text-sm space-y-1">{children}</ol>
+                            ),
+                            li: ({ children }) => <li className="mb-1 break-words">{children}</li>,
+                            h1: ({ children }) => (
+                              <h1 className="text-xl font-bold mb-3 mt-4 break-words">{children}</h1>
+                            ),
+                            h2: ({ children }) => (
+                              <h2 className="text-lg font-bold mb-3 mt-4 break-words">{children}</h2>
+                            ),
+                            h3: ({ children }) => (
+                              <h3 className="text-base font-bold mb-2 mt-3 break-words">{children}</h3>
+                            ),
+                            blockquote: ({ children }) => (
+                              <blockquote className="border-l-4 border-slate-600 pl-4 italic my-3 text-slate-300 break-words">
+                                {children}
+                              </blockquote>
+                            ),
+                            code({ inline, className, children, ...props }) {
+                              const match = /language-(\w+)/.exec(className || "")
+                              if (!inline && match) {
+                                return <CodeBlock language={match[1]} value={String(children).replace(/\n$/, "")} />
+                              }
+                              return (
+                                <code
+                                  className="bg-slate-800 px-1.5 py-0.5 rounded text-xs font-mono break-words"
+                                  {...props}
+                                >
+                                  {children}
+                                </code>
+                              )
+                            },
+                            pre: ({ children }) => <pre className="w-full overflow-x-auto">{children}</pre>,
+                          }}
+                        >
+                          {msg.parts[0].text}
+                        </ReactMarkdown>
+                      </div>
                     </div>
                   </div>
-
-                  <div
-                    className={`flex-1 ${msg.role === "user" ? "order-1 text-right" : "order-2"} max-w-[calc(100%-4rem)]`}
-                  >
-                    <div className="text-xs font-medium text-slate-300 mb-1">
-                      {msg.role === "user" ? "You" : "AninoDevAI"}
-                    </div>
-                    <div className="prose prose-sm prose-invert break-words w-full">
-                      <ReactMarkdown
-                        components={{
-                          p: ({ children }) => <p className="text-sm mb-2 break-words">{children}</p>,
-                          a: ({ children, href }) => (
-                            <a
-                              href={href}
-                              className="text-blue-400 hover:underline break-words"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              {children}
-                            </a>
-                          ),
-                          ul: ({ children }) => <ul className="list-disc pl-5 mb-2 text-sm">{children}</ul>,
-                          ol: ({ children }) => <ol className="list-decimal pl-5 mb-2 text-sm">{children}</ol>,
-                          li: ({ children }) => <li className="mb-1 break-words">{children}</li>,
-                          h1: ({ children }) => <h1 className="text-lg font-bold mb-2 mt-3 break-words">{children}</h1>,
-                          h2: ({ children }) => <h2 className="text-md font-bold mb-2 mt-3 break-words">{children}</h2>,
-                          h3: ({ children }) => <h3 className="text-sm font-bold mb-2 mt-3 break-words">{children}</h3>,
-                          blockquote: ({ children }) => (
-                            <blockquote className="border-l-2 border-slate-600 pl-3 italic my-2 break-words">
-                              {children}
-                            </blockquote>
-                          ),
-                          code({ inline, className, children, ...props }) {
-                            const match = /language-(\w+)/.exec(className || "")
-                            if (!inline && match) {
-                              return <CodeBlock language={match[1]} value={String(children).replace(/\n$/, "")} />
-                            }
-                            return (
-                              <code className="bg-slate-700 px-1 py-0.5 rounded text-xs break-words" {...props}>
+                ) : (
+                  // Assistant mess
+                  <div className="flex flex-col">
+                    <div className="max-w-[90%] md:max-w-[75%]">
+                      <div className="prose prose-sm prose-invert break-words w-full">
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => <p className="text-sm mb-3 break-words leading-relaxed">{children}</p>,
+                            a: ({ children, href }) => (
+                              <a
+                                href={href}
+                                className="text-blue-400 hover:underline break-words"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
                                 {children}
-                              </code>
-                            )
-                          },
-                          pre: ({ children }) => <pre className="w-full overflow-x-auto">{children}</pre>,
-                        }}
-                      >
-                        {msg.parts[0].text}
-                      </ReactMarkdown>
+                              </a>
+                            ),
+                            ul: ({ children }) => <ul className="list-disc pl-5 mb-3 text-sm space-y-1">{children}</ul>,
+                            ol: ({ children }) => (
+                              <ol className="list-decimal pl-5 mb-3 text-sm space-y-1">{children}</ol>
+                            ),
+                            li: ({ children }) => <li className="mb-1 break-words">{children}</li>,
+                            h1: ({ children }) => (
+                              <h1 className="text-xl font-bold mb-3 mt-4 break-words">{children}</h1>
+                            ),
+                            h2: ({ children }) => (
+                              <h2 className="text-lg font-bold mb-3 mt-4 break-words">{children}</h2>
+                            ),
+                            h3: ({ children }) => (
+                              <h3 className="text-base font-bold mb-2 mt-3 break-words">{children}</h3>
+                            ),
+                            blockquote: ({ children }) => (
+                              <blockquote className="border-l-4 border-slate-600 pl-4 italic my-3 text-slate-300 break-words">
+                                {children}
+                              </blockquote>
+                            ),
+                            code({ inline, className, children, ...props }) {
+                              const match = /language-(\w+)/.exec(className || "")
+                              if (!inline && match) {
+                                return <CodeBlock language={match[1]} value={String(children).replace(/\n$/, "")} />
+                              }
+                              return (
+                                <code
+                                  className="bg-slate-800 px-1.5 py-0.5 rounded text-xs font-mono break-words"
+                                  {...props}
+                                >
+                                  {children}
+                                </code>
+                              )
+                            },
+                            pre: ({ children }) => <pre className="w-full overflow-x-auto">{children}</pre>,
+                          }}
+                        >
+                          {msg.parts[0].text}
+                        </ReactMarkdown>
 
-                      {generatedImages[index] && (
-                        <div className="mt-3 mb-3">
-                          <img
-                            src={generatedImages[index] || "/placeholder.svg"}
-                            alt="Generated by AI"
-                            className="w-full rounded-md border border-slate-700"
-                          />
-                        </div>
-                      )}
-                    </div>
+                        {generatedImages[index] && (
+                          <div className="mt-4 mb-4">
+                            <img
+                              src={generatedImages[index] || "/placeholder.svg"}
+                              alt="Generated by AI"
+                              className="w-full rounded-md border border-slate-700 shadow-lg"
+                            />
+                          </div>
+                        )}
+                      </div>
 
-                    {msg.role !== "user" && (
-                      <div className="flex flex-wrap items-center gap-2 mt-3">
+                      <div className="flex flex-wrap items-center gap-3 mt-4">
                         <button
                           onClick={() => copyMessageToClipboard(msg.parts[0].text, index)}
-                          className="flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors p-1 rounded hover:bg-slate-700/30"
+                          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors p-1.5 rounded hover:bg-slate-700/30"
                         >
                           {copiedMessageIndex === index ? (
                             <>
                               <Check className="h-3.5 w-3.5" />
-                              <span>Copied!</span>
+                              <span>Copied</span>
                             </>
                           ) : (
                             <>
@@ -241,7 +302,7 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                           )}
                         </button>
 
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2">
                           <button
                             onClick={() =>
                               setRatings((prev) => ({
@@ -249,11 +310,12 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                                 [index]: prev[index] === 1 ? 0 : 1,
                               }))
                             }
-                            className={`p-1 rounded transition-colors ${
+                            className={`p-1.5 rounded transition-colors ${
                               ratings[index] === 1
-                                ? "text-emerald-400"
+                                ? "text-emerald-400 bg-emerald-400/10"
                                 : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                             }`}
+                            aria-label="Thumbs up"
                           >
                             <ThumbsUp className="h-3.5 w-3.5" />
                           </button>
@@ -264,90 +326,80 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                                 [index]: prev[index] === -1 ? 0 : -1,
                               }))
                             }
-                            className={`p-1 rounded transition-colors ${
+                            className={`p-1.5 rounded transition-colors ${
                               ratings[index] === -1
-                                ? "text-red-400"
+                                ? "text-red-400 bg-red-400/10"
                                 : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                             }`}
+                            aria-label="Thumbs down"
                           >
                             <ThumbsDown className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
-            ))}
+            </div>
+          ))}
 
-            {(thinking || loading) && (
-              <div className="flex items-start gap-3 mb-6 w-full">
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-emerald-600">
-                    <Bot className="h-4 w-4 text-white" />
-                  </div>
-                </div>
-                <div className="flex-1 max-w-[calc(100%-4rem)]">
-                  <div className="text-xs font-medium text-slate-300 mb-1 flex items-center">
-                    AninoDevAI{" "}
-                    {thinking && <span className="text-purple-400 ml-1 opacity-80 animate-pulse">(thinking)</span>}
-                  </div>
-
-                  {thinking && currentThought && (
-                    <div className="bg-slate-800/30 rounded-lg p-3 border border-slate-700/30 mb-3 animate-fadeIn w-full">
-                      <div className="text-xs text-purple-400 font-medium mb-1">Critical Thinking Process</div>
-                      <TypingAnimation text={currentThought} />
-
-                      {previousThoughts.length > 1 && (
-                        <div className="mt-2">
-                          <button
-                            onClick={() => setShowPreviousThoughts(!showPreviousThoughts)}
-                            className="text-xs text-slate-400 hover:text-white transition-colors"
-                          >
-                            {showPreviousThoughts ? "Hide previous thoughts" : "Show previous thoughts"}
-                          </button>
-
-                          {showPreviousThoughts && (
-                            <div className="mt-2 space-y-2 pl-2 border-l-2 border-slate-700">
-                              {previousThoughts.slice(0, -1).map((thought, i) => (
-                                <div
-                                  key={i}
-                                  className="text-xs text-slate-400 break-words"
-                                  style={{ opacity: 0.7 - i * 0.15 > 0.3 ? 0.7 - i * 0.15 : 0.3 }}
-                                >
-                                  {thought}
-                                </div>
-                              ))}
-                            </div>
+          {(thinking || loading) && (
+            <div className="w-full py-6">
+              <div className="max-w-3xl mx-auto px-4 sm:px-6">
+                <div className="flex flex-col">
+                  <div className="max-w-[90%] md:max-w-[75%]">
+                    {thinking && currentThought && (
+                      <div className="bg-slate-800/40 rounded-lg p-4 border border-slate-700/30 mb-4 animate-fadeIn w-full">
+                        <div className="text-xs text-emerald-400 font-medium mb-2 flex items-center justify-between">
+                          <span>Critical Thinking Process</span>
+                          {previousThoughts.length > 1 && (
+                            <button
+                              onClick={() => setShowPreviousThoughts(!showPreviousThoughts)}
+                              className="text-xs text-slate-400 hover:text-white transition-colors flex items-center gap-1"
+                            >
+                              {showPreviousThoughts ? (
+                                <>
+                                  <span>Hide history</span>
+                                  <ChevronUp className="h-3 w-3" />
+                                </>
+                              ) : (
+                                <>
+                                  <span>Show history</span>
+                                  <ChevronDown className="h-3 w-3" />
+                                </>
+                              )}
+                            </button>
                           )}
                         </div>
-                      )}
-                    </div>
-                  )}
+                        <TypingAnimation text={currentThought} />
 
-                  {/* Bouncing dots animation */}
-                  <div className="flex space-x-1 mt-2">
-                    <div
-                      className="h-2 w-2 bg-gray-500/70 rounded-full animate-bounce"
-                      style={{ animationDelay: "0ms" }}
-                    />
-                    <div
-                      className="h-2 w-2 bg-gray-500/70 rounded-full animate-bounce"
-                      style={{ animationDelay: "150ms" }}
-                    />
-                    <div
-                      className="h-2 w-2 bg-gray-500/70 rounded-full animate-bounce"
-                      style={{ animationDelay: "300ms" }}
-                    />
+                        {showPreviousThoughts && previousThoughts.length > 1 && (
+                          <div className="mt-3 space-y-2 pl-3 border-l-2 border-slate-700">
+                            {previousThoughts.slice(0, -1).map((thought, i) => (
+                              <div
+                                key={i}
+                                className="text-xs text-slate-400 break-words"
+                                style={{ opacity: 0.7 - i * 0.15 > 0.3 ? 0.7 - i * 0.15 : 0.3 }}
+                              >
+                                {thought}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {loading && <LoadingIndicator />}
                   </div>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            <div ref={messagesEndRef} />
-          </div>
-        )}
-      </div>
+          <div ref={messagesEndRef} className="h-4" />
+        </div>
+      )}
     </div>
   )
 }
