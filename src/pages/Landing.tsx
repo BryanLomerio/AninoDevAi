@@ -115,16 +115,16 @@ export default function Home() {
             <div className="relative">
               <TabsContent value="chat" className="space-y-4 mt-0 focus-visible:outline-none focus-visible:ring-0">
                 <div className="bg-[#1E1E1E] rounded-lg p-8 text-center border border-gray-800">
-                  <div className="mb-6 mx-auto w-20 h-20 flex items-center justify-center rounded-full bg-[#1e1e1e]">
+               {/*    <div className="mb-6 mx-auto w-20 h-20 flex items-center justify-center rounded-full bg-[#1e1e1e]">
                     <MessageSquare className="h-10 w-10 text-white" />
-                  </div>
+                  </div> */}
                   <h2 className="text-xl font-semibold mb-4">Chat with AninoDevAI</h2>
                   <p className="text-gray-400 mb-6 max-w-lg mx-auto">
                   Ask questions about programming, get code explanations, generate images with AninoDevAI assistant.
 
                   </p>
                   <Link to="/home">
-                    <Button size="lg" className="bg-green-800 hover:bg-green-500 text-white shadow-lg">
+                    <Button size="lg" className="bg-green-800 hover:bg-green-900 text-white shadow-lg">
                       <MessageSquare className="h-4 w-4 mr-2" />
                       Start Chatting
                     </Button>

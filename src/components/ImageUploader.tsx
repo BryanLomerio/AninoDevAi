@@ -172,9 +172,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, isProcessi
           }`}
         >
           <div className="flex flex-col items-center justify-center space-y-3">
-            <Upload
+           {/*  <Upload
               className={`h-8 w-8 sm:h-10 sm:w-10 transition-colors ${isDragging ? "text-blue-400" : "text-gray-400"}`}
-            />
+            /> */}
             <h3 className="text-base sm:text-lg font-medium">Upload an image</h3>
             <p className="text-xs sm:text-sm text-gray-400">
               {isMobile ? "Tap to browse" : "Drag and drop or click to browse"}
