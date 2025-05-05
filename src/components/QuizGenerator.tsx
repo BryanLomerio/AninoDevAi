@@ -13,15 +13,12 @@ import {
   ArrowRight,
   RefreshCw,
   CheckIcon,
-  XIcon,
   Settings,
   ChevronDown,
   Volume2,
   VolumeX,
   Brain,
 } from "lucide-react"
-import { initSpeechRecognition } from "@/utils/speechRecognition"
-import { speak, stopSpeaking, isSpeechSynthesisSupported } from "@/utils/textToSpeech"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
@@ -39,6 +36,65 @@ interface QuizQuestion {
 
 type QuizMode = "create" | "take"
 
+const chunkText = (text: string, maxLength = 4000): string[] => {
+  if (text.length <= maxLength) return [text]
+
+  const chunks: string[] = []
+  let currentChunk = ""
+
+  const sentences = text.split(/(?<=[.!?])\s+/)
+
+  for (const sentence of sentences) {
+    if (currentChunk.length + sentence.length <= maxLength) {
+      currentChunk += (currentChunk ? " " : "") + sentence
+    } else {
+      chunks.push(currentChunk)
+      currentChunk = sentence
+    }
+  }
+
+  if (currentChunk) {
+    chunks.push(currentChunk)
+  }
+
+  return chunks
+}
+
+const speakEnhanced = (text: string, rate = 1, pitch = 1, volume = 1): void => {
+  if (typeof window === "undefined" || !window.speechSynthesis) {
+    console.error("Speech synthesis not supported in this browser")
+    return
+  }
+
+  window.speechSynthesis.cancel()
+  const chunks = chunkText(text)
+
+  // Get available voices
+  const voices = window.speechSynthesis.getVoices()
+  const englishVoice = voices.find(
+    (voice) => (voice.lang.includes("en") && voice.name.includes("Google")) || voice.name.includes("Female"),
+  )
+
+  chunks.forEach((chunk, index) => {
+    const utterance = new SpeechSynthesisUtterance(chunk)
+
+    if (englishVoice) {
+      utterance.voice = englishVoice
+    }
+
+    utterance.rate = rate
+    utterance.pitch = pitch
+    utterance.volume = volume
+
+    // Only for debugging
+    if (index > 0) {
+      console.log(`Speaking chunk ${index + 1} of ${chunks.length}`)
+    }
+
+    window.speechSynthesis.speak(utterance)
+  })
+}
+
 const QuizGenerator = () => {
   const [inputText, setInputText] = useState("")
   const [isListening, setIsListening] = useState(false)
@@ -52,7 +108,7 @@ const QuizGenerator = () => {
   const [isMuted, setIsMuted] = useState(false)
   const [speechSupported, setSpeechSupported] = useState(false)
   const [speechRate, setSpeechRate] = useState(1)
-  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
+  const [generationError, setGenerationError] = useState<string | null>(null)
 
   // Quiz
   const [quizMode, setQuizMode] = useState<QuizMode>("create")
@@ -64,12 +120,14 @@ const QuizGenerator = () => {
   const [showExplanation, setShowExplanation] = useState(false)
 
   useEffect(() => {
-    setSpeechSupported(isSpeechSynthesisSupported())
+    setSpeechSupported(typeof window !== "undefined" && "speechSynthesis" in window)
   }, [])
 
   useEffect(() => {
     return () => {
-      stopSpeaking()
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel()
+      }
     }
   }, [])
 
@@ -83,7 +141,7 @@ const QuizGenerator = () => {
           textToSpeak += ". Options: " + currentQuestion.options.join(". ")
         }
 
-        currentUtteranceRef.current = speak(textToSpeak, speechRate)
+        speakEnhanced(textToSpeak, speechRate)
       }
     }
   }, [currentQuestionIndex, quizMode, generatedQuiz, isMuted, speechSupported, speechRate])
@@ -93,16 +151,18 @@ const QuizGenerator = () => {
       const currentQuestion = generatedQuiz[currentQuestionIndex]
       if (currentQuestion && currentQuestion.explanation) {
         const textToSpeak = `Explanation: ${currentQuestion.explanation}`
-        currentUtteranceRef.current = speak(textToSpeak, speechRate)
+        speakEnhanced(textToSpeak, speechRate)
       }
     }
   }, [showExplanation, isMuted, speechSupported, currentQuestionIndex, generatedQuiz, speechRate])
 
   const toggleMute = () => {
     if (!isMuted) {
-      stopSpeaking()
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel()
+      }
     } else if (quizMode === "take" && generatedQuiz.length > 0) {
-      // Resume speaking the current question
+      // Resume
       const currentQuestion = generatedQuiz[currentQuestionIndex]
       if (currentQuestion) {
         let textToSpeak = currentQuestion.question
@@ -111,7 +171,7 @@ const QuizGenerator = () => {
           textToSpeak += ". Options: " + currentQuestion.options.join(". ")
         }
 
-        currentUtteranceRef.current = speak(textToSpeak, speechRate)
+        speakEnhanced(textToSpeak, speechRate)
       }
     }
     setIsMuted(!isMuted)
@@ -189,62 +249,93 @@ const QuizGenerator = () => {
     }
 
     setIsGenerating(true)
+    setGenerationError(null)
+
     try {
       const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
       if (!GEMINI_API_KEY) {
         throw new Error("Gemini API key is missing")
       }
 
-      const prompt = `Generate a ${quizType} quiz with exactly ${numQuestions} questions based on the following content.
-      Format the response as a JSON array of question objects.
-      ${
-        quizType === "multiple-choice"
-          ? "Each object should have: question, options (array of 4 choices), answer (correct option), and explanation."
-          : "Each object should have: question, answer, and explanation."
-      }
-      Content: ${inputText}`
+      const batchSize = 10
+      const batches = Math.ceil(numQuestions / batchSize)
+      let allQuestions: QuizQuestion[] = []
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 2048,
+      for (let batch = 0; batch < batches; batch++) {
+        const questionsInBatch = Math.min(batchSize, numQuestions - batch * batchSize)
+
+        const prompt = `Generate a ${quizType} quiz with exactly ${questionsInBatch} questions based on the following content.
+        Format the response as a JSON array of question objects.
+        ${
+          quizType === "multiple-choice"
+            ? "Each object should have: question, options (array of 4 choices), answer (correct option), and explanation."
+            : "Each object should have: question, answer, and explanation."
+        }
+        Content: ${inputText}
+        ${batch > 0 ? `This is batch ${batch + 1} of ${batches}, so make sure these questions are different from previous batches.` : ""}
+        IMPORTANT: Return ONLY valid JSON without any additional text or formatting.`
+
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
             },
-          }),
-        },
-      )
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 4096,
+              },
+            }),
+          },
+        )
 
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`)
+        if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}`)
+        }
+
+        const data = await response.json()
+        const generatedText = data.candidates[0].content.parts[0].text
+
+        let quizData: QuizQuestion[] = []
+        try {
+
+          quizData = JSON.parse(generatedText.trim())
+        } catch (e) {
+          const jsonMatch = generatedText.match(/\[\s*\{[\s\S]*\}\s*\]/)
+          if (jsonMatch) {
+            quizData = JSON.parse(jsonMatch[0])
+          } else {
+            throw new Error("Could not parse quiz data from response")
+          }
+        }
+
+        allQuestions = [...allQuestions, ...quizData]
+
+        // If we're doing batches, add a small delay to avoid rate limiting
+        if (batches > 1 && batch < batches - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 1000))
+        }
       }
 
-      const data = await response.json()
-      const generatedText = data.candidates[0].content.parts[0].text
-      const jsonMatch = generatedText.match(/\[[\s\S]*\]/)
-      if (jsonMatch) {
-        const quizData = JSON.parse(jsonMatch[0])
-        setGeneratedQuiz(quizData)
-        // Reset quiz
-        setCurrentQuestionIndex(0)
-        setUserAnswers([])
-        setScore(0)
-        setQuizMode("take")
-        setIsAnswerSubmitted(false)
-        setSelectedOption("")
+      // Limit to exactly the number of questions requested
+      allQuestions = allQuestions.slice(0, numQuestions)
 
-        console.log(`Quiz Generated: Successfully generated ${quizData.length} questions. Let's start!`)
-      } else {
-        throw new Error("Could not parse quiz data from response")
-      }
+      setGeneratedQuiz(allQuestions)
+      // Reset quiz
+      setCurrentQuestionIndex(0)
+      setUserAnswers([])
+      setScore(0)
+      setQuizMode("take")
+      setIsAnswerSubmitted(false)
+      setSelectedOption("")
+
+      console.log(`Quiz Generated: Successfully generated ${allQuestions.length} questions. Let's start!`)
     } catch (error) {
       console.error("Error generating quiz:", error)
+      setGenerationError(error instanceof Error ? error.message : "Failed to generate quiz")
       console.log("Generation Failed: " + (error instanceof Error ? error.message : "Failed to generate quiz"))
     } finally {
       setIsGenerating(false)
@@ -255,6 +346,7 @@ const QuizGenerator = () => {
     setInputText("")
     setGeneratedQuiz([])
     setQuizMode("create")
+    setGenerationError(null)
   }
 
   const handleAnswerSubmit = () => {
@@ -264,7 +356,9 @@ const QuizGenerator = () => {
     }
 
     // Stop any ongoing speech
-    stopSpeaking()
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel()
+    }
 
     const currentQuestion = generatedQuiz[currentQuestionIndex]
     const isCorrect = selectedOption === currentQuestion.answer
@@ -282,13 +376,14 @@ const QuizGenerator = () => {
 
     if (!isMuted && speechSupported) {
       const resultText = isCorrect ? "Correct!" : `Incorrect. The correct answer is: ${currentQuestion.answer}`
-
-      currentUtteranceRef.current = speak(resultText, speechRate)
+      speakEnhanced(resultText, speechRate)
     }
   }
 
   const handleNextQuestion = () => {
-    stopSpeaking()
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel()
+    }
 
     if (currentQuestionIndex < generatedQuiz.length - 1) {
       setCurrentQuestionIndex((prevIndex) => prevIndex + 1)
@@ -302,13 +397,15 @@ const QuizGenerator = () => {
       //final scre
       if (!isMuted && speechSupported) {
         const scoreText = `Quiz completed! Your final score is ${score} out of ${generatedQuiz.length}.`
-        currentUtteranceRef.current = speak(scoreText, speechRate)
+        speakEnhanced(scoreText, speechRate)
       }
     }
   }
 
   const restartQuiz = () => {
-    stopSpeaking()
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel()
+    }
     setCurrentQuestionIndex(0)
     setUserAnswers([])
     setScore(0)
@@ -318,7 +415,9 @@ const QuizGenerator = () => {
   }
 
   const backToCreation = () => {
-    stopSpeaking()
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel()
+    }
     setCurrentQuestionIndex(0)
     setUserAnswers([])
     setScore(0)
@@ -427,6 +526,11 @@ const QuizGenerator = () => {
                   ) : (
                     <p className="text-xs text-gray-400">Slider available for 1-20 questions</p>
                   )}
+                  {numQuestions > 20 && (
+                    <p className="text-xs text-amber-400 mt-2">
+                      Note: Generating {numQuestions} questions may take longer and will be processed in batches.
+                    </p>
+                  )}
                 </div>
               </div>
             </DialogContent>
@@ -435,7 +539,7 @@ const QuizGenerator = () => {
       </div>
 
       <Tabs value={inputMethod} onValueChange={setInputMethod} className="w-full">
-      <TabsList className="relative inline-flex mx-auto mb-3 bg-[#272727] rounded-lg overflow-hidden">
+        <TabsList className="relative inline-flex mx-auto mb-3 bg-[#272727] rounded-lg overflow-hidden">
           <TabsTrigger
             value="text"
             className="flex-1 py-2 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:bg-green-800  data-[state=active]:text-white flex items-center justify-center"
@@ -445,7 +549,7 @@ const QuizGenerator = () => {
           </TabsTrigger>
           <TabsTrigger
             value="file"
- className="flex-1 py-2 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:text-white data-[state=active]:bg-green-800 flex items-center justify-center"
+            className="flex-1 py-2 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:text-white data-[state=active]:bg-green-800 flex items-center justify-center"
           >
             <Upload className="h-4 w-4 mr-2" />
             <span>File Upload</span>
@@ -531,6 +635,15 @@ const QuizGenerator = () => {
         </TabsContent>
       </Tabs>
 
+      {generationError && (
+        <div className="p-3 bg-red-900/30 border border-red-800 rounded-md text-sm">
+          <p>Error: {generationError}</p>
+          <p className="mt-1 text-xs text-gray-300">
+            Try reducing the number of questions or simplifying your content.
+          </p>
+        </div>
+      )}
+
       <Button
         className="w-full bg-green-800 hover:bg-green-700 transition-colors py-6 text-base font-medium shadow-lg"
         onClick={generateQuiz}
@@ -545,10 +658,15 @@ const QuizGenerator = () => {
           `Generate ${numQuestions} Question${numQuestions !== 1 ? "s" : ""}`
         )}
       </Button>
+
+      {numQuestions > 20 && (
+        <p className="text-xs text-center text-amber-400">
+          Note: Generating {numQuestions} questions will be processed in batches and may take longer.
+        </p>
+      )}
     </div>
   )
 
-  // render quiz
   const renderQuizTaking = () => {
     if (generatedQuiz.length === 0) return null
 
@@ -642,7 +760,7 @@ const QuizGenerator = () => {
                         <CheckIcon className="h-5 w-5 text-green-500" />
                       )}
                       {isAnswerSubmitted && option === selectedOption && option !== currentQuestion.answer && (
-                        <XIcon className="h-5 w-5 text-red-500" />
+                        <X className="h-5 w-5 text-red-500" />
                       )}
                     </Label>
                   </div>
@@ -730,6 +848,9 @@ const QuizGenerator = () => {
               <p className="text-sm text-gray-400">
                 You answered {score} out of {generatedQuiz.length} questions correctly.
               </p>
+              <div className="text-2xl font-bold text-amber-500">
+                {Math.round((score / generatedQuiz.length) * 100)}%
+              </div>
               <div className="flex flex-col sm:flex-row justify-center gap-3 pt-2">
                 <Button onClick={restartQuiz} className="bg-green-800 hover:bg-green-700 transition-colors">
                   <RefreshCw className="h-4 w-4 mr-2" />
@@ -754,3 +875,35 @@ const QuizGenerator = () => {
 }
 
 export default QuizGenerator
+
+const initSpeechRecognition = (onResult: (text: string) => void, onError: (error: any) => void) => {
+  if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
+    return null
+  }
+
+  const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+
+  const recognition = new SpeechRecognitionAPI()
+  recognition.continuous = true
+  recognition.interimResults = true
+  recognition.lang = "en-US"
+
+  recognition.onresult = (event: any) => {
+    let interimTranscript = ""
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript
+      if (event.results[i].isFinal) {
+        onResult(transcript)
+      } else {
+        interimTranscript += transcript
+      }
+    }
+    if (interimTranscript) {
+      onResult(interimTranscript)
+    }
+  }
+
+  recognition.onerror = onError
+
+  return recognition
+}

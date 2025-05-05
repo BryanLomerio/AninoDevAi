@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ImageIcon, MessageSquare, Github, Coffee, FileQuestion, Play } from "lucide-react"
+import { ImageIcon, MessageSquare, Github, Coffee, FileQuestion, Play, Brain} from "lucide-react"
 import ImageUploader from "@/components/ImageUploader"
 import CodeGenerationResult from "@/components/CodeGenerationResult"
 import QuizGenerator from "@/components/QuizGenerator"
@@ -114,7 +114,7 @@ export default function LandingPage() {
                 value="quiz"
                 className="flex items-center justify-center data-[state=active]:bg-[#1e1e1e] data-[state=active]:text-white rounded-md transition-all"
               >
-                <FileQuestion className="h-4 w-4 sm:mr-2" />
+                 <Brain className="h-5 w-5 sm:mr-2" />
                 <span className="hidden sm:inline">SelfQuizzer</span>
               </TabsTrigger>
             </TabsList>
