@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react"
 import type { Message } from "../utils/aiHelpers"
 import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism"
 import { Check, Copy, ThumbsUp, ThumbsDown, ChevronDown, ChevronUp } from "lucide-react"
@@ -163,6 +164,7 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                     <div className="max-w-[90%] md:max-w-[75%]">
                       <div className="prose prose-invert break-words">
                         <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
                           components={{
                             p: ({ children }) => <p className="text-sm mb-3 break-words leading-relaxed">{children}</p>,
                             a: ({ children, href }) => (
@@ -209,6 +211,22 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                               )
                             },
                             pre: ({ children }) => <pre className="w-full overflow-x-auto">{children}</pre>,
+                            table: ({ children }) => (
+                              <div className="overflow-x-auto my-4 w-full">
+                                <table className="min-w-full border border-slate-700 rounded-md text-sm">
+                                  {children}
+                                </table>
+                              </div>
+                            ),
+                            thead: ({ children }) => <thead className="bg-slate-800">{children}</thead>,
+                            tbody: ({ children }) => <tbody className="divide-y divide-slate-700">{children}</tbody>,
+                            tr: ({ children }) => <tr className="divide-x divide-slate-700">{children}</tr>,
+                            th: ({ children }) => (
+                              <th className="px-4 py-2 text-left font-medium text-slate-300 whitespace-nowrap">
+                                {children}
+                              </th>
+                            ),
+                            td: ({ children }) => <td className="px-4 py-2 text-slate-300">{children}</td>,
                           }}
                         >
                           {msg.parts[0].text}
@@ -222,6 +240,7 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                     <div className="max-w-[90%] md:max-w-[75%]">
                       <div className="prose prose-sm prose-invert break-words w-full">
                         <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
                           components={{
                             p: ({ children }) => <p className="text-sm mb-3 break-words leading-relaxed">{children}</p>,
                             a: ({ children, href }) => (
@@ -268,6 +287,22 @@ const ChatDisplay: React.FC<ChatDisplayProps> = ({ messages, loading, generatedI
                               )
                             },
                             pre: ({ children }) => <pre className="w-full overflow-x-auto">{children}</pre>,
+                            table: ({ children }) => (
+                              <div className="overflow-x-auto my-4 w-full">
+                                <table className="min-w-full border border-slate-700 rounded-md text-sm">
+                                  {children}
+                                </table>
+                              </div>
+                            ),
+                            thead: ({ children }) => <thead className="bg-slate-800">{children}</thead>,
+                            tbody: ({ children }) => <tbody className="divide-y divide-slate-700">{children}</tbody>,
+                            tr: ({ children }) => <tr className="divide-x divide-slate-700">{children}</tr>,
+                            th: ({ children }) => (
+                              <th className="px-4 py-2 text-left font-medium text-slate-300 whitespace-nowrap">
+                                {children}
+                              </th>
+                            ),
+                            td: ({ children }) => <td className="px-4 py-2 text-slate-300">{children}</td>,
                           }}
                         >
                           {msg.parts[0].text}
