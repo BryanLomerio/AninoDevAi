@@ -275,33 +275,65 @@ const QuizGenerator = () => {
         ${batch > 0 ? `This is batch ${batch + 1} of ${batches}, so make sure these questions are different from previous batches.` : ""}
         IMPORTANT: Return ONLY valid JSON without any additional text or formatting.`
 
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }],
-              generationConfig: {
-                temperature: 0.7,
-                maxOutputTokens: 4096,
-              },
-            }),
-          },
-        )
 
-        if (!response.ok) {
-          throw new Error(`API request failed with status ${response.status}`)
+        let retries = 0
+        const maxRetries = 5
+        let delay = 1000
+        let success = false
+        let responseData
+
+        while (!success && retries < maxRetries) {
+          try {
+            const response = await fetch(
+              `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: prompt }] }],
+                  generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 4096,
+                  },
+                }),
+              },
+            )
+
+            if (response.status === 429) {
+              retries++
+              console.log(`Rate limit hit. Retry ${retries}/${maxRetries} after ${delay}ms delay`)
+              await new Promise((resolve) => setTimeout(resolve, delay))
+              delay *= 2 // Exponential backoff
+              continue
+            }
+
+            if (!response.ok) {
+              throw new Error(`API request failed with status ${response.status}`)
+            }
+
+            responseData = await response.json()
+            success = true
+          } catch (error) {
+            retries++
+            if (retries >= maxRetries) {
+              throw error
+            }
+            console.log(`Error occurred. Retry ${retries}/${maxRetries} after ${delay}ms delay`)
+            await new Promise((resolve) => setTimeout(resolve, delay))
+            delay *= 2 // Exponential backoff
+          }
         }
 
-        const data = await response.json()
-        const generatedText = data.candidates[0].content.parts[0].text
+        if (!success || !responseData) {
+          throw new Error("Failed to generate quiz after multiple retries")
+        }
+
+        const generatedText = responseData.candidates[0].content.parts[0].text
 
         let quizData: QuizQuestion[] = []
         try {
-
           quizData = JSON.parse(generatedText.trim())
         } catch (e) {
           const jsonMatch = generatedText.match(/\[\s*\{[\s\S]*\}\s*\]/)
@@ -314,9 +346,12 @@ const QuizGenerator = () => {
 
         allQuestions = [...allQuestions, ...quizData]
 
-        // If we're doing batches, add a small delay to avoid rate limiting
+        // If we're doing batches, add a larger delay to avoid rate limiting
         if (batches > 1 && batch < batches - 1) {
-          await new Promise((resolve) => setTimeout(resolve, 1000))
+          // Add a progressively longer delay between batches
+          const batchDelay = 2000 + batch * 1000
+          console.log(`Waiting ${batchDelay / 1000} seconds before next batch to avoid rate limits...`)
+          await new Promise((resolve) => setTimeout(resolve, batchDelay))
         }
       }
 
@@ -335,7 +370,13 @@ const QuizGenerator = () => {
       console.log(`Quiz Generated: Successfully generated ${allQuestions.length} questions. Let's start!`)
     } catch (error) {
       console.error("Error generating quiz:", error)
-      setGenerationError(error instanceof Error ? error.message : "Failed to generate quiz")
+      if (error.message.includes("429")) {
+        setGenerationError(
+          "Rate limit exceeded. Please wait a moment before trying again or reduce the number of questions.",
+        )
+      } else {
+        setGenerationError(error instanceof Error ? error.message : "Failed to generate quiz")
+      }
       console.log("Generation Failed: " + (error instanceof Error ? error.message : "Failed to generate quiz"))
     } finally {
       setIsGenerating(false)
