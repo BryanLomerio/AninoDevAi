@@ -584,14 +584,14 @@ const QuizGenerator = () => {
             value="text"
             className="flex-1 py-2 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:bg-green-800  data-[state=active]:text-white flex items-center justify-center"
           >
-            <FileText className="h-4 w-4 mr-2" />
+           {/*  <FileText className="h-4 w-4 mr-2" /> */}
             <span>Text Input</span>
           </TabsTrigger>
           <TabsTrigger
             value="file"
             className="flex-1 py-2 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:text-white data-[state=active]:bg-green-800 flex items-center justify-center"
           >
-            <Upload className="h-4 w-4 mr-2" />
+         {/*    <Upload className="h-4 w-4 mr-2" /> */}
             <span>File Upload</span>
           </TabsTrigger>
         </TabsList>
