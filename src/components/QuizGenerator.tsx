@@ -305,7 +305,7 @@ const QuizGenerator = () => {
               retries++
               console.log(`Rate limit hit. Retry ${retries}/${maxRetries} after ${delay}ms delay`)
               await new Promise((resolve) => setTimeout(resolve, delay))
-              delay *= 2 // Exponential backoff
+              delay *= 2
               continue
             }
 
@@ -322,7 +322,7 @@ const QuizGenerator = () => {
             }
             console.log(`Error occurred. Retry ${retries}/${maxRetries} after ${delay}ms delay`)
             await new Promise((resolve) => setTimeout(resolve, delay))
-            delay *= 2 // Exponential backoff
+            delay *= 2
           }
         }
 
@@ -346,16 +346,15 @@ const QuizGenerator = () => {
 
         allQuestions = [...allQuestions, ...quizData]
 
-        // If we're doing batches, add a larger delay to avoid rate limiting
+
         if (batches > 1 && batch < batches - 1) {
-          // Add a progressively longer delay between batches
+
           const batchDelay = 2000 + batch * 1000
           console.log(`Waiting ${batchDelay / 1000} seconds before next batch to avoid rate limits...`)
           await new Promise((resolve) => setTimeout(resolve, batchDelay))
         }
       }
 
-      // Limit to exactly the number of questions requested
       allQuestions = allQuestions.slice(0, numQuestions)
 
       setGeneratedQuiz(allQuestions)
