@@ -610,7 +610,7 @@ const QuizGenerator = () => {
                   variant="outline"
                   size="sm"
                   className={`${
-                    isListening ? "bg-red-900 hover:bg-red-800" : "bg-[#2A2A2A] hover:bg-[#333333]"
+                    isListening ? "bg-red-900 hover:bg-red-800" : "bg-[#2A2A2A]  hover:text-green-600 hover:bg-[#333333]"
                   } border-gray-700 transition-colors`}
                   onClick={handleVoiceInput}
                 >
@@ -620,7 +620,7 @@ const QuizGenerator = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="bg-[#2A2A2A] hover:bg-[#333333] border-gray-700"
+                  className="bg-[#2A2A2A] hover:bg-[#333333] hover:text-red-600 border-gray-700"
                   onClick={clearInput}
                 >
                   <X className="h-4 w-4 mr-2" />
