@@ -7,7 +7,6 @@ import {
   Loader2,
   Upload,
   Mic,
-  FileText,
   CheckCircle,
   X,
   ArrowRight,
@@ -211,20 +210,53 @@ const QuizGenerator = () => {
     }
   }
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const text = e.target?.result as string
-      setInputText(text)
-      console.log(`File Uploaded: Successfully loaded content from ${file.name}`)
+    setIsGenerating(true)
+    try {
+      // For text files, use FileReader
+      if (
+        file.type === "text/plain" ||
+        file.type === "text/markdown" ||
+        file.name.endsWith(".md") ||
+        file.name.endsWith(".txt")
+      ) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const text = e.target?.result as string
+          setInputText(text)
+          console.log(`File Uploaded: Successfully loaded content from ${file.name}`)
+          setIsGenerating(false)
+        }
+        reader.onerror = () => {
+          console.log("Error Reading File: There was an error reading the file.")
+          setGenerationError("Failed to read the file. Please try another file.")
+          setIsGenerating(false)
+        }
+        reader.readAsText(file)
+      }
+      // For PDF and DOC files, we need to extract text differently
+      else if (
+        file.type === "application/pdf" ||
+        file.type.includes("word") ||
+        file.name.endsWith(".docx") ||
+        file.name.endsWith(".doc")
+      ) {
+        // For demonstration, we'll just show an error message
+        // In a real implementation, you would use a library like pdf.js for PDFs or a server-side solution for DOC files
+        setGenerationError("PDF and DOC file parsing is not implemented in this demo. Please use plain text files.")
+        setIsGenerating(false)
+      } else {
+        setGenerationError("Unsupported file type. Please upload a text file (.txt, .md).")
+        setIsGenerating(false)
+      }
+    } catch (error) {
+      console.error("File upload error:", error)
+      setGenerationError("An error occurred while processing the file.")
+      setIsGenerating(false)
     }
-    reader.onerror = () => {
-      console.log("Error Reading File: There was an error reading the file.")
-    }
-    reader.readAsText(file)
   }
 
   const triggerFileUpload = () => {
@@ -274,7 +306,6 @@ const QuizGenerator = () => {
         Content: ${inputText}
         ${batch > 0 ? `This is batch ${batch + 1} of ${batches}, so make sure these questions are different from previous batches.` : ""}
         IMPORTANT: Return ONLY valid JSON without any additional text or formatting.`
-
 
         let retries = 0
         const maxRetries = 5
@@ -346,9 +377,7 @@ const QuizGenerator = () => {
 
         allQuestions = [...allQuestions, ...quizData]
 
-
         if (batches > 1 && batch < batches - 1) {
-
           const batchDelay = 2000 + batch * 1000
           console.log(`Waiting ${batchDelay / 1000} seconds before next batch to avoid rate limits...`)
           await new Promise((resolve) => setTimeout(resolve, batchDelay))
@@ -584,14 +613,14 @@ const QuizGenerator = () => {
             value="text"
             className="flex-1 py-2 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:bg-green-800  data-[state=active]:text-white flex items-center justify-center"
           >
-           {/*  <FileText className="h-4 w-4 mr-2" /> */}
+            {/*  <FileText className="h-4 w-4 mr-2" /> */}
             <span>Text Input</span>
           </TabsTrigger>
           <TabsTrigger
             value="file"
             className="flex-1 py-2 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:text-white data-[state=active]:bg-green-800 flex items-center justify-center"
           >
-         {/*    <Upload className="h-4 w-4 mr-2" /> */}
+            {/*    <Upload className="h-4 w-4 mr-2" /> */}
             <span>File Upload</span>
           </TabsTrigger>
         </TabsList>
@@ -610,7 +639,9 @@ const QuizGenerator = () => {
                   variant="outline"
                   size="sm"
                   className={`${
-                    isListening ? "bg-red-900 hover:bg-red-800" : "bg-[#2A2A2A]  hover:text-green-600 hover:bg-[#333333]"
+                    isListening
+                      ? "bg-red-900 hover:bg-red-800"
+                      : "bg-[#2A2A2A]  hover:text-green-600 hover:bg-[#333333]"
                   } border-gray-700 transition-colors`}
                   onClick={handleVoiceInput}
                 >
@@ -633,20 +664,14 @@ const QuizGenerator = () => {
 
         <TabsContent value="file" className="mt-0">
           <Card className="p-5 bg-[#1E1E1E] border-gray-800 flex flex-col items-center justify-center shadow-md">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              accept=".txt,.md,.doc,.docx,.pdf"
-              className="hidden"
-            />
+            <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".txt,.md" className="hidden" />
             <div className="text-center space-y-4">
               <div className="w-14 h-14 bg-[#252525] text-white rounded-full flex items-center justify-center mx-auto">
                 <Upload className="h-6 w-6 text-gray-400" />
               </div>
               <div>
                 <h3 className="font-medium text-base">Upload a Text File</h3>
-                <p className="text-xs text-gray-400 mt-1">Supports TXT, MD, DOC, DOCX, PDF</p>
+                <p className="text-xs text-gray-400 mt-1">Supports TXT, MD files</p>
               </div>
               <Button
                 variant="outline"

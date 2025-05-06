@@ -124,10 +124,7 @@ export const sendMessageToGemini = async (
     return { assistantMessage, responseText: customText };
   }
 
-  // Analyze the query to determine the appropriate response approach
   const queryAnalysis = analyzeQuery(userMessage.parts[0].text, messages);
-
-  // Enhanced system prompt with critical thinking instructions
   const personaMessage: Message = {
     role: "user",
     parts: [
@@ -157,7 +154,6 @@ export const sendMessageToGemini = async (
     ],
   };
 
-  // Add context-specific instructions based on query analysis
   if (queryAnalysis.domains.includes("Software Development") ||
       queryAnalysis.domains.includes("Programming")) {
     personaMessage.parts[0].text += `
@@ -220,7 +216,6 @@ export const sendMessageToGemini = async (
   return { assistantMessage, responseText };
 };
 
-// New function to analyze the query and determine the best response approach
 function analyzeQuery(query: string, previousMessages: Message[]) {
   const lowercaseQuery = query.toLowerCase();
 

@@ -17,7 +17,6 @@ export const generateThinkingProcess = (prompt: string): ThinkingStep[] => {
     thought: `Identifying key topics: ${topics.join(", ")}`,
   })
 
-  // Identify knowledge domains with more specificity
   const domains = identifyDomains(lowercasePrompt, topics)
   steps.push({
     thought: `Considering knowledge domains: ${domains.join(", ")}`,
@@ -72,7 +71,7 @@ function extractKeyTopics(prompt: string): string[] {
     else topics.push("programming")
   }
 
-  // AI and ML with more specific categorization
+  // AI and ML
   if (
     prompt.includes("ai") ||
     prompt.includes("machine learning") ||
@@ -157,9 +156,8 @@ function extractKeyTopics(prompt: string): string[] {
     topics.push("problem solving")
   }
 
-  // No specific topics found
   if (topics.length === 0) {
-    // Try to extract potential topics from key nouns
+
     const potentialTopics = extractPotentialTopics(prompt)
     if (potentialTopics.length > 0) {
       topics.push(...potentialTopics)
