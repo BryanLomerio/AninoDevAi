@@ -6,8 +6,6 @@ export async function generateCodeFromImage(apiKey: string, imageFile: File): Pr
     const base64Image = await fileToBase64(imageFile)
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
-
-    // image data for the API
     const imagePart = {
       inlineData: {
         data: base64Image.split(",")[1],
@@ -15,7 +13,6 @@ export async function generateCodeFromImage(apiKey: string, imageFile: File): Pr
       },
     }
 
-    // Prompt for code generation
     const prompt =
       "Generate React JSX and Tailwind CSS code that would create a UI like what you see in this image. Focus on creating clean, responsive code that replicates the visual design as closely as possible."
 
