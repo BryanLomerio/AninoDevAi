@@ -216,7 +216,7 @@ const Home = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#1e1e1e] flex justify-center font-poppins">
+    <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] to-[#232323] text-white quiz-bg-pattern flex justify-center font-poppins">
       <div className="w-full max-w-4xl flex flex-col h-screen relative">
         {/* Header */}
         <div className="bg-[#1e1e1e] p-3 sm:p-4 flex justify-between items-center sticky top-0 z-20">

@@ -134,7 +134,6 @@ const QuizGenerator = () => {
 
     setIsGenerating(true)
     try {
-      // For text files, use FileReader
       if (
         file.type === "text/plain" ||
         file.type === "text/markdown" ||
@@ -155,14 +154,13 @@ const QuizGenerator = () => {
         }
         reader.readAsText(file)
       }
-      // For PDF and DOC files, we need to extract text differently
+
       else if (
         file.type === "application/pdf" ||
         file.type.includes("word") ||
         file.name.endsWith(".docx") ||
         file.name.endsWith(".doc")
       ) {
-        // For demonstration, we'll just show an error message
         setGenerationError("PDF and DOC file parsing is not implemented in this demo. Please use plain text files.")
         setIsGenerating(false)
       } else {
