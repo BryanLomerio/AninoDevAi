@@ -172,13 +172,13 @@ const QuizCreation = ({
         <TabsList className="relative flex w-full sm:w-2/3 mx-auto mb-5 bg-black/30 rounded-lg overflow-hidden">
           <TabsTrigger
             value="text"
-            className="flex-1 py-2.5 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white flex items-center justify-center"
+            className="flex-1 py-2.5 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:bg-green-800 data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white flex items-center justify-center"
           >
             <span>Text Input</span>
           </TabsTrigger>
           <TabsTrigger
             value="file"
-            className="flex-1 py-2.5 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white flex items-center justify-center"
+            className="flex-1 py-2.5 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:bg-green-800 data-[state=active]:from-green-600 data-[state=active]:to-emerald-700 data-[state=active]:text-white flex items-center justify-center"
           >
             <span>File Upload</span>
           </TabsTrigger>
@@ -225,9 +225,9 @@ const QuizCreation = ({
           <Card className="p-8 bg-black/30 border-gray-800/50 flex flex-col items-center justify-center shadow-xl rounded-xl backdrop-blur-sm">
             <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".txt,.md" className="hidden" />
             <div className="text-center space-y-5">
-              <div className="w-20 h-20 bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-xl flex items-center justify-center mx-auto">
+  {/*             <div className="w-20 h-20 bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-xl flex items-center justify-center mx-auto">
                 <Upload className="h-8 w-8 text-green-500" />
-              </div>
+              </div> */}
               <div>
                 <h3 className="font-bold text-lg text-green-400">Upload a Text File</h3>
                 <p className="text-sm text-gray-400 mt-2">Supports TXT, MD files</p>
