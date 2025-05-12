@@ -69,7 +69,7 @@ const QuizTaking = ({
           <div className="bg-gradient-to-br from-green-600 to-green-800 p-2.5 rounded-xl shadow-lg">
             <Brain className="h-5 w-5 text-white" />
           </div>
-          <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-600">
+          <h2 className="text-xl font-bold text-green-500">
             Quiz
           </h2>
         </div>

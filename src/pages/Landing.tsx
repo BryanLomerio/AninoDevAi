@@ -50,7 +50,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] to-[#232323] text-white quiz-bg-pattern">
+    <div className="min-h-screen bg-[#1e1e1e] from-[#1a1a1a] to-[#232323] text-white quiz-bg-pattern">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <header className="flex flex-col md:flex-row justify-between items-center mb-12 gap-4">
           <div className="text-center md:text-left">
