@@ -2,12 +2,15 @@ import { useState, useRef, useEffect } from "react"
 import QuizCreation from "../components/QuizCreation"
 import QuizTaking from "../components/QuizTaking"
 import { speakEnhanced } from "../lib/speech-utils"
+import { Card } from "@/components/ui/card"
 
 interface QuizQuestion {
   question: string
   options?: string[]
   answer: string
   explanation?: string
+  difficulty?: "easy" | "medium" | "hard"
+  topic?: string
 }
 
 type QuizMode = "create" | "take"
@@ -26,8 +29,9 @@ const QuizGenerator = () => {
   const [speechSupported, setSpeechSupported] = useState(false)
   const [speechRate, setSpeechRate] = useState(1)
   const [generationError, setGenerationError] = useState<string | null>(null)
+  const [difficulty, setDifficulty] = useState("medium")
 
-  // Quiz
+  // Quiz state
   const [quizMode, setQuizMode] = useState<QuizMode>("create")
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [userAnswers, setUserAnswers] = useState<string[]>([])
@@ -79,7 +83,6 @@ const QuizGenerator = () => {
         window.speechSynthesis.cancel()
       }
     } else if (quizMode === "take" && generatedQuiz.length > 0) {
-      // Resume
       const currentQuestion = generatedQuiz[currentQuestionIndex]
       if (currentQuestion) {
         let textToSpeak = currentQuestion.question
@@ -113,7 +116,6 @@ const QuizGenerator = () => {
       },
       (error) => {
         console.error("Speech recognition error:", error)
-        console.log("Voice Recognition Error: There was an error with voice recognition. Please try again.")
         setIsListening(false)
       },
     )
@@ -122,9 +124,6 @@ const QuizGenerator = () => {
       recognitionRef.current = recognition
       recognition.start()
       setIsListening(true)
-      console.log("Voice Recognition Active: Start speaking. Click the mic button again to stop.")
-    } else {
-      console.log("Voice Recognition Not Supported: Your browser doesn't support voice recognition.")
     }
   }
 
@@ -133,6 +132,8 @@ const QuizGenerator = () => {
     if (!file) return
 
     setIsGenerating(true)
+    setGenerationError(null)
+
     try {
       if (
         file.type === "text/plain" ||
@@ -144,25 +145,13 @@ const QuizGenerator = () => {
         reader.onload = (e) => {
           const text = e.target?.result as string
           setInputText(text)
-          console.log(`File Uploaded: Successfully loaded content from ${file.name}`)
           setIsGenerating(false)
         }
         reader.onerror = () => {
-          console.log("Error Reading File: There was an error reading the file.")
           setGenerationError("Failed to read the file. Please try another file.")
           setIsGenerating(false)
         }
         reader.readAsText(file)
-      }
-
-      else if (
-        file.type === "application/pdf" ||
-        file.type.includes("word") ||
-        file.name.endsWith(".docx") ||
-        file.name.endsWith(".doc")
-      ) {
-        setGenerationError("PDF and DOC file parsing is not implemented in this demo. Please use plain text files.")
-        setIsGenerating(false)
       } else {
         setGenerationError("Unsupported file type. Please upload a text file (.txt, .md).")
         setIsGenerating(false)
@@ -191,7 +180,7 @@ const QuizGenerator = () => {
 
   const generateQuiz = async () => {
     if (!inputText.trim()) {
-      console.log("Input Required: Please provide text content to generate a quiz.")
+      setGenerationError("Please provide text content to generate a quiz.")
       return
     }
 
@@ -204,26 +193,60 @@ const QuizGenerator = () => {
         throw new Error("Gemini API key is missing")
       }
 
-      const batchSize = 10
+      const batchSize = Math.min(8, numQuestions)
       const batches = Math.ceil(numQuestions / batchSize)
       let allQuestions: QuizQuestion[] = []
 
       for (let batch = 0; batch < batches; batch++) {
         const questionsInBatch = Math.min(batchSize, numQuestions - batch * batchSize)
 
-        const prompt = `Generate a ${quizType} quiz with exactly ${questionsInBatch} questions based on the following content.
-        Format the response as a JSON array of question objects.
-        ${
-          quizType === "multiple-choice"
-            ? "Each object should have: question, options (array of 4 choices), answer (correct option), and explanation."
-            : "Each object should have: question, answer, and explanation."
-        }
-        Content: ${inputText}
-        ${batch > 0 ? `This is batch ${batch + 1} of ${batches}, so make sure these questions are different from previous batches.` : ""}
-        IMPORTANT: Return ONLY valid JSON without any additional text or formatting.`
+        const difficultyPrompt = {
+          easy: "Generate questions that test basic understanding and recall of key concepts.",
+          medium: "Generate questions that require comprehension and application of concepts.",
+          hard: "Generate questions that require analysis, synthesis, and critical thinking."
+        }[difficulty]
+
+        const prompt = `Generate a ${quizType} quiz with exactly ${questionsInBatch} ${difficulty} difficulty questions based on the following content.
+
+${difficultyPrompt}
+
+Format the response as a JSON array of question objects.
+${
+  quizType === "multiple-choice"
+    ? `Each object should have:
+- question: the question text
+- options: array of exactly 4 plausible choices (mix correct and incorrect options well)
+- answer: the exact correct option from the choices
+- explanation: detailed explanation of why the answer is correct
+- difficulty: "${difficulty}"
+- topic: relevant topic/subject area`
+    : quizType === "true-false"
+    ? `Each object should have:
+- question: a clear statement that can be definitively true or false
+- answer: "True" or "False"
+- explanation: detailed explanation of why the statement is true or false
+- difficulty: "${difficulty}"
+- topic: relevant topic/subject area`
+    : `Each object should have:
+- question: the question text
+- answer: a concise but complete answer
+- explanation: detailed explanation expanding on the answer
+- difficulty: "${difficulty}"
+- topic: relevant topic/subject area`
+}
+
+Content: ${inputText}
+
+${batch > 0 ? `This is batch ${batch + 1} of ${batches}. Ensure questions are unique and don't repeat topics from previous batches.` : ""}
+
+IMPORTANT:
+- Return ONLY valid JSON without any additional text or formatting
+- Ensure all questions are clear, unambiguous, and directly related to the content
+- For multiple choice, make distractors plausible but clearly incorrect
+- Provide comprehensive explanations that enhance learning`
 
         let retries = 0
-        const maxRetries = 5
+        const maxRetries = 3
         let delay = 1000
         let success = false
         let responseData
@@ -240,8 +263,8 @@ const QuizGenerator = () => {
                 body: JSON.stringify({
                   contents: [{ parts: [{ text: prompt }] }],
                   generationConfig: {
-                    temperature: 0.7,
-                    maxOutputTokens: 4096,
+                    temperature: 0.8,
+                    maxOutputTokens: 8192,
                   },
                 }),
               },
@@ -249,7 +272,6 @@ const QuizGenerator = () => {
 
             if (response.status === 429) {
               retries++
-              console.log(`Rate limit hit. Retry ${retries}/${maxRetries} after ${delay}ms delay`)
               await new Promise((resolve) => setTimeout(resolve, delay))
               delay *= 2
               continue
@@ -266,7 +288,6 @@ const QuizGenerator = () => {
             if (retries >= maxRetries) {
               throw error
             }
-            console.log(`Error occurred. Retry ${retries}/${maxRetries} after ${delay}ms delay`)
             await new Promise((resolve) => setTimeout(resolve, delay))
             delay *= 2
           }
@@ -280,7 +301,8 @@ const QuizGenerator = () => {
 
         let quizData: QuizQuestion[] = []
         try {
-          quizData = JSON.parse(generatedText.trim())
+          const cleanedText = generatedText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+          quizData = JSON.parse(cleanedText)
         } catch (e) {
           const jsonMatch = generatedText.match(/\[\s*\{[\s\S]*\}\s*\]/)
           if (jsonMatch) {
@@ -290,19 +312,32 @@ const QuizGenerator = () => {
           }
         }
 
+        // Validate and clean quiz data
+        quizData = quizData.filter((q: any) => {
+          if (!q.question || !q.answer) return false
+          if (quizType === "multiple-choice" && (!q.options || !Array.isArray(q.options) || q.options.length !== 4)) return false
+          return true
+        }).map((q: any) => ({
+          ...q,
+          difficulty: q.difficulty || difficulty,
+          topic: q.topic || "General"
+        }))
+
         allQuestions = [...allQuestions, ...quizData]
 
         if (batches > 1 && batch < batches - 1) {
-          const batchDelay = 2000 + batch * 1000
-          console.log(`Waiting ${batchDelay / 1000} seconds before next batch to avoid rate limits...`)
+          const batchDelay = 2000
           await new Promise((resolve) => setTimeout(resolve, batchDelay))
         }
       }
 
       allQuestions = allQuestions.slice(0, numQuestions)
 
+      if (allQuestions.length === 0) {
+        throw new Error("No valid questions were generated. Please try with different content or settings.")
+      }
+
       setGeneratedQuiz(allQuestions)
-      // Reset quiz
       setCurrentQuestionIndex(0)
       setUserAnswers([])
       setScore(0)
@@ -310,7 +345,6 @@ const QuizGenerator = () => {
       setIsAnswerSubmitted(false)
       setSelectedOption("")
 
-      console.log(`Quiz Generated: Successfully generated ${allQuestions.length} questions. Let's start!`)
     } catch (error) {
       console.error("Error generating quiz:", error)
       if (error.message.includes("429")) {
@@ -320,7 +354,6 @@ const QuizGenerator = () => {
       } else {
         setGenerationError(error instanceof Error ? error.message : "Failed to generate quiz")
       }
-      console.log("Generation Failed: " + (error instanceof Error ? error.message : "Failed to generate quiz"))
     } finally {
       setIsGenerating(false)
     }
@@ -335,17 +368,16 @@ const QuizGenerator = () => {
 
   const handleAnswerSubmit = () => {
     if (!selectedOption && quizType === "multiple-choice") {
-      console.log("Selection Required: Please select an answer before submitting.")
+      setGenerationError("Please select an answer before submitting.")
       return
     }
 
-    // Stop any ongoing speech
     if (typeof window !== "undefined" && window.speechSynthesis) {
       window.speechSynthesis.cancel()
     }
 
     const currentQuestion = generatedQuiz[currentQuestionIndex]
-    const isCorrect = selectedOption === currentQuestion.answer
+    const isCorrect = selectedOption.toLowerCase().trim() === currentQuestion.answer.toLowerCase().trim()
 
     const newUserAnswers = [...userAnswers]
     newUserAnswers[currentQuestionIndex] = selectedOption
@@ -375,10 +407,6 @@ const QuizGenerator = () => {
       setIsAnswerSubmitted(false)
       setShowExplanation(false)
     } else {
-      // Quiz completed
-      console.log(`Quiz Completed!: Your final score: ${score}/${generatedQuiz.length}`)
-
-      //final score
       if (!isMuted && speechSupported) {
         const scoreText = `Quiz completed! Your final score is ${score} out of ${generatedQuiz.length}.`
         speakEnhanced(scoreText, speechRate)
@@ -412,52 +440,77 @@ const QuizGenerator = () => {
     setGeneratedQuiz([])
   }
 
-  return quizMode === "create" ? (
-    <QuizCreation
-      inputText={inputText}
-      setInputText={setInputText}
-      isListening={isListening}
-      isGenerating={isGenerating}
-      quizType={quizType}
-      setQuizType={setQuizType}
-      inputMethod={inputMethod}
-      setInputMethod={setInputMethod}
-      fileInputRef={fileInputRef}
-      numQuestions={numQuestions}
-      generationError={generationError}
-      handleVoiceInput={handleVoiceInput}
-      handleFileUpload={handleFileUpload}
-      triggerFileUpload={triggerFileUpload}
-      handleNumQuestionsChange={handleNumQuestionsChange}
-      handleNumQuestionsInput={handleNumQuestionsInput}
-      generateQuiz={generateQuiz}
-      clearInput={clearInput}
-    />
-  ) : (
-    <QuizTaking
-      generatedQuiz={generatedQuiz}
-      currentQuestionIndex={currentQuestionIndex}
-      userAnswers={userAnswers}
-      selectedOption={selectedOption}
-      setSelectedOption={setSelectedOption}
-      isAnswerSubmitted={isAnswerSubmitted}
-      score={score}
-      showExplanation={showExplanation}
-      quizType={quizType}
-      isMuted={isMuted}
-      speechSupported={speechSupported}
-      speechRate={speechRate}
-      toggleMute={toggleMute}
-      handleSpeechRateChange={handleSpeechRateChange}
-      handleAnswerSubmit={handleAnswerSubmit}
-      handleNextQuestion={handleNextQuestion}
-      restartQuiz={restartQuiz}
-      backToCreation={backToCreation}
-    />
+  return (
+    <div className="min-h-screen">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+{/*         <div className="flex items-center justify-between mb-8">
+          <Link to="/">
+            <Button variant="ghost" className="text-slate-300 hover:text-white hover:bg-slate-800">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to
+            </Button>
+          </Link>
+          <Link to="/">
+            <Button variant="outline" size="sm" className="bg-slate-800 border-slate-700 hover:bg-slate-700">
+              <Home className="h-4 w-4 mr-2" />
+              Home
+            </Button>
+          </Link>
+        </div> */}
+
+        {/* Main Content */}
+        <Card className="p-8 bg-slate-800/50 backdrop-blur-xl border-slate-700 shadow-2xl w-full">
+          {quizMode === "create" ? (
+            <QuizCreation
+              inputText={inputText}
+              setInputText={setInputText}
+              isListening={isListening}
+              isGenerating={isGenerating}
+              quizType={quizType}
+              setQuizType={setQuizType}
+              inputMethod={inputMethod}
+              setInputMethod={setInputMethod}
+              fileInputRef={fileInputRef}
+              numQuestions={numQuestions}
+              generationError={generationError}
+              difficulty={difficulty}
+              setDifficulty={setDifficulty}
+              handleVoiceInput={handleVoiceInput}
+              handleFileUpload={handleFileUpload}
+              triggerFileUpload={triggerFileUpload}
+              handleNumQuestionsChange={handleNumQuestionsChange}
+              handleNumQuestionsInput={handleNumQuestionsInput}
+              generateQuiz={generateQuiz}
+              clearInput={clearInput}
+            />
+          ) : (
+            <QuizTaking
+              generatedQuiz={generatedQuiz}
+              currentQuestionIndex={currentQuestionIndex}
+              userAnswers={userAnswers}
+              selectedOption={selectedOption}
+              setSelectedOption={setSelectedOption}
+              isAnswerSubmitted={isAnswerSubmitted}
+              score={score}
+              showExplanation={showExplanation}
+              quizType={quizType}
+              isMuted={isMuted}
+              speechSupported={speechSupported}
+              speechRate={speechRate}
+              toggleMute={toggleMute}
+              handleSpeechRateChange={handleSpeechRateChange}
+              handleAnswerSubmit={handleAnswerSubmit}
+              handleNextQuestion={handleNextQuestion}
+              restartQuiz={restartQuiz}
+              backToCreation={backToCreation}
+            />
+          )}
+        </Card>
+      </div>
+    </div>
   )
 }
-
-export default QuizGenerator
 
 const initSpeechRecognition = (onResult: (text: string) => void, onError: (error: any) => void) => {
   if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
@@ -490,3 +543,5 @@ const initSpeechRecognition = (onResult: (text: string) => void, onError: (error
 
   return recognition
 }
+
+export default QuizGenerator

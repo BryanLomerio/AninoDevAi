@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 const Quiz = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] to-[#232323] text-white quiz-bg-pattern">
-      <div className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:py-12">
         <div className="mb-6">
           <Link to="/">
             <Button
