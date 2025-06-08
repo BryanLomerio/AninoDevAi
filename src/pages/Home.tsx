@@ -273,7 +273,7 @@ const Home = () => {
             onToggleThinkingMode={() => setThinkingMode(!thinkingMode)}
           />
           <div className="mt-2 flex justify-between items-center">
-            <p className="text-xs sm:text-sm text-slate-400 flex items-center gap-2">
+           {/*  <p className="text-xs sm:text-sm text-slate-400 flex items-center gap-2">
               {isListening ? (
                 <>
                   <span className="inline-block h-2 w-2 rounded-full bg-green-500 animate-pulse" /> Listening...
@@ -283,8 +283,8 @@ const Home = () => {
                   <span className="inline-block h-2 w-2 rounded-full bg-slate-600" /> Microphone off
                 </>
               )}
-            </p>
-            {thinkingMode && <p className="text-xs text-yellow-400">Critical thinking mode on</p>}
+            </p> */}
+         {/*    {thinkingMode && <p className="text-xs text-yellow-400">Critical thinking mode on</p>} */}
           </div>
         </div>
       </div>

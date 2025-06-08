@@ -171,9 +171,9 @@ const MessageInput = ({
         </div>
       </form>
 
-      <div className="text-xs text-center text-gray-500 mt-2 opacity-80">
+    {/*   <div className="text-xs text-center text-gray-500 mt-2 opacity-80">
         AninoDevAI can make mistakes. Consider checking important information.
-      </div>
+      </div> */}
     </div>
   );
 };
