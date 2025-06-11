@@ -460,7 +460,7 @@ IMPORTANT:
         </div> */}
 
         {/* Main Content */}
-        <Card className="p-8 bg-slate-800/50 backdrop-blur-xl border-slate-700 shadow-2xl w-full">
+        <Card className="p-8 bg-[#191919] backdrop-blur-xl  border-none w-full">
           {quizMode === "create" ? (
             <QuizCreation
               inputText={inputText}
