@@ -94,7 +94,7 @@ const QuizCreation = ({
               <DialogHeader>
                 <DialogTitle className="text-white flex items-center gap-2">
                   <Settings className="h-4 w-4 text-emerald-500" />
-                  Quiz Settings
+                  Settings
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-5 mt-2">
@@ -218,13 +218,13 @@ const QuizCreation = ({
         <TabsList className="relative flex w-full sm:w-2/3 mx-auto mb-5 bg-[#272727] rounded-lg overflow-hidden">
           <TabsTrigger
             value="text"
-            className="flex-1 py-2.5 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:bg-emerald-600 data-[state=active]:text-white flex items-center justify-center"
+            className="flex-1 py-2.5 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:bg-[#166534] data-[state=active]:text-white flex items-center justify-center"
           >
             <span>Text Input</span>
           </TabsTrigger>
           <TabsTrigger
             value="file"
-            className="flex-1 py-2.5 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:bg-emerald-600 data-[state=active]:text-white flex items-center justify-center"
+            className="flex-1 py-2.5 text-center z-10 data-[state=inactive]:text-gray-400 data-[state=active]:bg-[#166534] data-[state=active]:text-white flex items-center justify-center"
           >
             <span>File Upload</span>
           </TabsTrigger>
@@ -311,7 +311,7 @@ const QuizCreation = ({
       )}
 
       <Button
-        className={`w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition-all py-7 text-lg font-medium shadow-xl rounded-xl ${
+        className={`w-full bg-[#166534] hover:bg-green-500 from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition-all py-7 text-lg font-medium shadow-xl rounded-xl ${
           isGenerating || !inputText.trim() ? "opacity-80" : ""
         }`}
         onClick={generateQuiz}

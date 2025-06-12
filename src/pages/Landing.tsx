@@ -100,21 +100,21 @@ export default function LandingPage() {
                 value="chat"
                 className="flex items-center justify-center data-[state=active]:bg-[#1e1e1e] data-[state=active]:text-white rounded-md transition-all"
               >
-                <MessageSquare className="h-4 w-4 sm:mr-2" />
+               {/*  <MessageSquare className="h-4 w-4 sm:mr-2" /> */}
                 <span className="hidden sm:inline">Chat Assistant</span>
               </TabsTrigger>
               <TabsTrigger
                 value="code"
                 className="flex items-center justify-center data-[state=active]:bg-[#1e1e1e] data-[state=active]:text-white rounded-md transition-all"
               >
-                <ImageIcon className="h-4 w-4 sm:mr-2" />
+              {/*   <ImageIcon className="h-4 w-4 sm:mr-2" /> */}
                 <span className="hidden sm:inline">Image to Code</span>
               </TabsTrigger>
               <TabsTrigger
                 value="quiz"
                 className="flex items-center justify-center data-[state=active]:bg-[#1e1e1e] data-[state=active]:text-white rounded-md transition-all"
               >
-                 <Brain className="h-5 w-5 sm:mr-2" />
+                {/*  <Brain className="h-5 w-5 sm:mr-2" /> */}
                 <span className="hidden sm:inline">SelfQuizzer</span>
               </TabsTrigger>
             </TabsList>
@@ -127,7 +127,7 @@ export default function LandingPage() {
                 </p>
                 <Link to="/home">
                   <Button size="lg" className="bg-green-800 hover:bg-green-900 text-white shadow-lg">
-                    <MessageSquare className="h-4 w-4 mr-2" />
+                 {/*    <MessageSquare className="h-4 w-4 mr-2" /> */}
                     Start Chatting
                   </Button>
                 </Link>
@@ -149,7 +149,7 @@ export default function LandingPage() {
                 </p>
                 <Link to="/quiz">
                   <Button size="lg" className="bg-green-800 hover:bg-green-900 text-white shadow-lg">
-                    <Play className="h-4 w-4 mr-2" />
+                  {/*   <Play className="h-4 w-4 mr-2" /> */}
                     Start Quiz
                   </Button>
                 </Link>
